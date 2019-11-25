@@ -1,0 +1,33 @@
+{
+    "name": "irontec/ivoz-dev-tools",
+    "description": "DevTools for ivozprovider",
+    "license": "GPL-3.0-or-later",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Carlos Cruz",
+            "email": "carlos@irontec.com"
+        },
+        {
+            "name": "Ivan Alonso",
+            "email": "kaian@irontec.com"
+        },
+        {
+            "name": "Mikel Madariaga",
+            "email": "mikel@irontec.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "EntityGeneratorBundle\\": "EntityGeneratorBundle"
+        }
+    },
+    "require": {
+        "php": ">=7.0.19",
+        "doctrine/orm": "^2.5",
+        "doctrine/doctrine-bundle": "^1.6",
+        "symfony/console": "^3.4"
+    },
+    "require-dev": {
+    }
+}
