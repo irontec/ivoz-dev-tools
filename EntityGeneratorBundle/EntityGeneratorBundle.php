@@ -1,6 +1,6 @@
 <?php
 
-namespace EntityGeneratorBundle;
+namespace IvozDevTools\EntityGeneratorBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
