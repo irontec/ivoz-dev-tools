@@ -1,6 +1,6 @@
 <?php
 
-namespace EntityGeneratorBundle\Tools;
+namespace IvozDevTools\EntityGeneratorBundle\Tools;
 
 use Doctrine\ORM\Tools\EntityGenerator as ParentGenerator;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;

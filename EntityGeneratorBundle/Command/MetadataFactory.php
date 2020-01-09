@@ -1,6 +1,6 @@
 <?php
 
-namespace EntityGeneratorBundle\Command;
+namespace IvozDevTools\EntityGeneratorBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Mapping\DisconnectedMetadataFactory;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;

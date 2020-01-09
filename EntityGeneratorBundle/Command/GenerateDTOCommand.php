@@ -1,12 +1,12 @@
 <?php
 
-namespace EntityGeneratorBundle\Command;
+namespace IvozDevTools\EntityGeneratorBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Command\GenerateEntitiesDoctrineCommand as ParentCommand;
 use Doctrine\ORM\Tools\EntityGenerator;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-use EntityGeneratorBundle\Tools\DTOGenerator;
+use IvozDevTools\EntityGeneratorBundle\Tools\DTOGenerator;
 
 /**
  * Generate entity classes from mapping information

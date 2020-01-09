@@ -1,6 +1,6 @@
 <?php
 
-namespace CommandlogBundle;
+namespace IvozDevTools\CommandlogBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

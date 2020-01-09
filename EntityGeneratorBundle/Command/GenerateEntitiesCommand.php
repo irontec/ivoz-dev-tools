@@ -1,9 +1,9 @@
 <?php
 
-namespace EntityGeneratorBundle\Command;
+namespace IvozDevTools\EntityGeneratorBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Command\GenerateEntitiesDoctrineCommand as ParentCommand;
-use EntityGeneratorBundle\Tools\EntityGenerator;
+use IvozDevTools\EntityGeneratorBundle\Tools\EntityGenerator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 

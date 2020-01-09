@@ -1,6 +1,6 @@
 <?php
 
-namespace EntityGeneratorBundle\Command;
+namespace IvozDevTools\EntityGeneratorBundle\Command;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Doctrine\ORM\Tools\EntityRepositoryGenerator;

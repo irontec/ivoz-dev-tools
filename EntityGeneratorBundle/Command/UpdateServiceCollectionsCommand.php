@@ -1,6 +1,6 @@
 <?php
 
-namespace EntityGeneratorBundle\Command;
+namespace IvozDevTools\EntityGeneratorBundle\Command;
 
 use Ivoz\Core\Domain\Service\LifecycleEventHandlerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;

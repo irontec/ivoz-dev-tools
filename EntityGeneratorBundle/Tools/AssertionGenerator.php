@@ -1,6 +1,6 @@
 <?php
 
-namespace EntityGeneratorBundle\Tools;
+namespace IvozDevTools\EntityGeneratorBundle\Tools;
 
 /**
  * Description of EntityGenerator

@@ -1,6 +1,6 @@
 <?php
 
-namespace CommandlogBundle\Command;
+namespace IvozDevTools\CommandlogBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Ivoz\Provider\Domain\Model\Commandlog\Commandlog;
