@@ -106,7 +106,7 @@ public function <methodName>Id($id)
      */
     protected static $getMethodTemplate =
     '/**
- * @return <variableType>
+ * @return <variableType> | null
  */
 public function <methodName>()
 {

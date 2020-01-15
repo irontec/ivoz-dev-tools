@@ -179,7 +179,7 @@ protected function __toArray()
     '/**
  * <description>
  *
- * @param <variableType> $<variableName>
+ * @param <variableType> $<variableName><nullable>
  *
  * @return static
  */
@@ -774,8 +774,11 @@ public function <methodName>(<criteriaArgument>)
                 }
 
                 if (!isset($field->declared) && !$isOneToMany) {
+
+                    $nullable = true; //$this->isAssociationIsNullable($field);
+
                     $associationToArray = $this
-                        ->getConstructorAssociationFields($attribute, $fieldName, $isOneToMany);
+                        ->getConstructorAssociationFields($attribute, $fieldName, $nullable);
 
                     if (empty($associationToArray)) {
                         continue;
@@ -995,10 +998,18 @@ public function <methodName>(<criteriaArgument>)
      * @param string $fieldName
      * @return string
      */
-    protected function getConstructorAssociationFields($attribute, $fieldName, $isOneToMany)
+    protected function getConstructorAssociationFields($attribute, $fieldName, $nullable)
     {
+        $response = '\'' . $attribute .'Id\' => ';
+
+        if (!$nullable) {
+            return
+                $response
+                . 'self::get' . Inflector::classify($fieldName) . '()->getId()';
+        }
+
         return
-            '\'' . $attribute .'Id\' => '
+            $response
             . 'self::get' . Inflector::classify($fieldName) . '()'
             . ' ? '
             . 'self::get' . Inflector::classify($fieldName) . '()->getId()'
@@ -1254,6 +1265,10 @@ public function <methodName>(<criteriaArgument>)
      */
     protected function isAssociationIsNullable($associationMapping)
     {
+        if ($associationMapping instanceof \stdClass) {
+            $associationMapping = (array) $associationMapping;
+        }
+
         $isOneToOne = $associationMapping['type'] === ClassMetadataInfo::ONE_TO_ONE;
         if ($associationMapping['inversedBy'] && !$isOneToOne) {
             return true;
@@ -1549,19 +1564,6 @@ public function <methodName>(<criteriaArgument>)
         $isNullable = isset($currentField->nullable) && $currentField->nullable;
         if ($isNullable) {
             $assertions[] = '$' . $currentField->fieldName . ' = (float) $' . $currentField->fieldName . ';';
-        }
-
-        if (!empty($assertions) && $isNullable
-        ) {
-            foreach ($assertions as $key => $value) {
-                $assertions[$key] = $this->spaces . $assertions[$key];
-            }
-
-            array_unshift(
-                $assertions,
-                AssertionGenerator::notNullCondition($currentField->fieldName)
-            );
-            $assertions[] = '}';
         }
 
         return $assertions;
