@@ -47,6 +47,16 @@ public function __construct(<requiredFields>)<lineBreak>{
 <requiredFieldsSetters>
 <collections>
 }
+
+/**
+ * Equals
+ */
+public function equals(self $<entityName>)
+{
+    return
+        <equals>;
+}
+
 ';
 
     /**
@@ -662,6 +672,14 @@ public function <methodName>(<criteriaArgument>)
             }
         }
 
+        $fqdnSegments = explode('\\', $metadata->name);
+        $instanceName = lcfirst(end($fqdnSegments));
+        $equals = [];
+        foreach ($requiredGetters as $getter) {
+            $equals[] = '$this->' . $getter . ' === $' . $instanceName . '->' . $getter;
+        }
+        $equalsStr = implode(" &&\n" . str_repeat($this->spaces, 2), $equals);
+
         if (!empty($requiredFieldSetters)) {
             $response = str_replace('<requiredFieldsSetters>', $requiredFieldSetters, $response);
         } else {
@@ -676,8 +694,10 @@ public function <methodName>(<criteriaArgument>)
         $namespace = end($namespaceSegments) . 'Dto';
         $response = str_replace('<dtoClass>', $namespace, $response);
         $response = str_replace('<entityClass>', end($namespaceSegments), $response);
+        $response = str_replace('<entityName>', $instanceName, $response);
 
         $response = str_replace('<voContructor>', $voContructor, $response);
+        $response = str_replace('<equals>', $equalsStr, $response);
         $response = str_replace('<fromDTO>', $fromDTO, $response);
         $response = str_replace('<updateFromDTO>', $updateFromDTO, $response);
 
@@ -1343,6 +1363,14 @@ public function <methodName>(<criteriaArgument>)
         }
 
         $assertions = [];
+
+        $isEmbeddable = array_key_exists($fieldName, $metadata->embeddedClasses);
+        if ($isEmbeddable) {
+            $assertions[] = 'if ($this->' . $fieldName .'->equals($' . $fieldName . ')) {';
+            $assertions[] = $this->spaces . 'return $this;';
+            $assertions[] = '}';
+            $assertions[] = '';
+        }
 
         if ($currentField) {
             $comment = '';
