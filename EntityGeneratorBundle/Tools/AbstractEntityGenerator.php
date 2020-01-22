@@ -1366,7 +1366,8 @@ public function <methodName>(<criteriaArgument>)
 
         $isEmbeddable = array_key_exists($fieldName, $metadata->embeddedClasses);
         if ($isEmbeddable) {
-            $assertions[] = 'if ($this->' . $fieldName .'->equals($' . $fieldName . ')) {';
+            $assertions[] = '$isEqual = $this->' . $fieldName .' && $this->' . $fieldName .'->equals($' . $fieldName . ');';
+            $assertions[] = 'if ($isEqual) {';
             $assertions[] = $this->spaces . 'return $this;';
             $assertions[] = '}';
             $assertions[] = '';
