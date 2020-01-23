@@ -1485,7 +1485,7 @@ public function <methodName>(<criteriaArgument>)
         $replacements = array(
             $this->spaces . '<assertions>' => $assertions,
             '<visibility>' => $visibility,
-            '<nullable>' => ($isNullable || $isNullableFk) ? ' | null' : '',
+            '<nullable>' => ($isNullable || $isNullableFk || $isCascadePersisted) ? ' | null' : '',
             '<prefix>'             => $prefix,
             '<suffix>'             => $suffix,
         );
