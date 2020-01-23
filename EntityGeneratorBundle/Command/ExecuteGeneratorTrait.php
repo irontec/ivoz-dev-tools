@@ -83,6 +83,7 @@ trait ExecuteGeneratorTrait
                 $m = $this->meldEmbedded($metadata, $m);
             } elseif ($this->injectEmbeddedClasses) {
                 $m = $this->injectEmbeddedClasses($metadata, $m);
+                $m = $this->markCascadePersistColumns($metadata, $m);
             }
 
             if ($backupExisting) {
@@ -128,6 +129,46 @@ trait ExecuteGeneratorTrait
                 $classEmbeddableMetadata = $embeddableMetadata->getMetadata();
                 $entity->inlineEmbeddable($property, current($classEmbeddableMetadata));
             }
+        }
+
+        return $entity;
+    }
+
+    private function markCascadePersistColumns($metadata, $entity)
+    {
+        foreach ($entity->associationMappings as $key => &$associationMapping) {
+
+            $targetEntityName = $associationMapping['targetEntity'];
+            $targetFldName = $associationMapping['inversedBy'];
+
+            if (!$targetFldName) {
+                continue;
+            }
+
+            /** @var \Doctrine\ORM\Mapping\ClassMetadata $targetEntity */
+            try {
+                $targetEntity = $this->retrieveEntity($metadata, $targetEntityName);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            $targetField = $targetEntity->associationMappings[$targetFldName];
+
+            if (!$targetField || !isset($targetField['cascade']) || count($targetField['cascade']) === 0) {
+                continue;
+            }
+
+            $isCascadePersisted = in_array(
+                'persist',
+                $targetField['cascade'],
+                true
+            );
+
+            if (!$isCascadePersisted) {
+                continue;
+            }
+
+            $associationMapping['cascadePersisted'] = $isCascadePersisted;
         }
 
         return $entity;

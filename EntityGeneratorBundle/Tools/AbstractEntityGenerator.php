@@ -479,7 +479,6 @@ public function <methodName>(<criteriaArgument>)
             $classAttr = $this->spaces . $this->fieldVisibility . ' $' . $fieldMapping['fieldName'];
 
             $isDateType = $this->isDateType($fieldMapping['type']);
-            $defaultValue = '';
             $isBoolean = $fieldMapping['type'] === 'boolean' ?? false;
             $hasDefaultValue = isset($fieldMapping['options']['default']);
 
@@ -501,7 +500,6 @@ public function <methodName>(<criteriaArgument>)
 
     private function getEnumConstants($fieldName, $acceptedValues, $prefix = '')
     {
-
         $choices = [];
         foreach ($acceptedValues as $acceptedValue) {
             $choice =
@@ -791,7 +789,7 @@ public function <methodName>(<criteriaArgument>)
 
                 if (!isset($field->declared) && !$isOneToMany) {
 
-                    $nullable = true; //$this->isAssociationIsNullable($field);
+                    $nullable = $this->isAssociationIsNullable($field);
 
                     $associationToArray = $this
                         ->getConstructorAssociationFields($attribute, $fieldName, $nullable);
@@ -1215,15 +1213,10 @@ public function <methodName>(<criteriaArgument>)
                 . ' * @var \\'
                 . ltrim($associationMapping['targetEntity'], '\\');
 
-            $column = $associationMapping['joinColumns'][0] ?? null;
-            $isNullableFk =
-                isset($column)
-                && (
-                    (isset($column['nullable']) && $column['nullable'])
-                    || (isset($column['onDelete']) && $column['onDelete'] === 'set null')
-                );
+            $isNullableFk = $this->isAssociationIsNullable($associationMapping);
+            $isCascadePersisted = isset($associationMapping['cascadePersisted']) && $associationMapping['cascadePersisted'];
 
-            if ($isNullableFk) {
+            if ($isNullableFk || $isCascadePersisted) {
                 $line .= ' | null';
             }
 
@@ -1285,13 +1278,8 @@ public function <methodName>(<criteriaArgument>)
             $associationMapping = (array) $associationMapping;
         }
 
-        $isOneToOne = $associationMapping['type'] === ClassMetadataInfo::ONE_TO_ONE;
-        if ($associationMapping['inversedBy'] && !$isOneToOne) {
+        if (isset($associationMapping['cascadePersisted']) && $associationMapping['cascadePersisted']) {
             return true;
-        }
-
-        if ($isOneToOne) {
-            return !$associationMapping['isOwningSide'];
         }
 
         return parent::isAssociationIsNullable($associationMapping);
@@ -1305,6 +1293,7 @@ public function <methodName>(<criteriaArgument>)
         $currentField = null;
         $isNullable = false;
         $isNullableFk = false;
+        $isCascadePersisted = false;
         $visibility = 'protected';
 
         if (array_key_exists($fieldName, $metadata->fieldMappings)) {
@@ -1319,6 +1308,7 @@ public function <methodName>(<criteriaArgument>)
                     (isset($currentAsoc->joinColumns[0]['nullable']) && $currentAsoc->joinColumns[0]['nullable'])
                     || (isset($currentAsoc->joinColumns[0]['onDelete']) && $currentAsoc->joinColumns[0]['onDelete'] === 'set null')
                 );
+            $isCascadePersisted = isset($currentAsoc->cascadePersisted) && $currentAsoc->cascadePersisted;
         }
 
         if (is_null($defaultValue) && ($isNullable || $isNullableFk)) {
@@ -1330,8 +1320,7 @@ public function <methodName>(<criteriaArgument>)
             $typeHint = substr($typeHint, 1);
         }
 
-        $isFk = strpos($typeHint, '\\');
-        if ($isFk) {
+        if ($isCascadePersisted) {
             $visibility = 'public';
         }
 
@@ -1345,19 +1334,6 @@ public function <methodName>(<criteriaArgument>)
 
         $prefix = '';
         $suffix = '';
-
-        $isNullableFk = false;
-        if (array_key_exists($fieldName, $metadata->associationMappings)) {
-            $currentAsoc = (object) $metadata->associationMappings[$fieldName];
-            $isNullableFk =
-                isset($currentAsoc->joinColumns)
-                && isset($currentAsoc->joinColumns[0])
-                && (
-                    (isset($currentAsoc->joinColumns[0]['nullable']) && $currentAsoc->joinColumns[0]['nullable'])
-                    || (isset($currentAsoc->joinColumns[0]['onDelete']) && $currentAsoc->joinColumns[0]['onDelete'] === 'set null')
-                );
-        }
-
         $assertions = [];
 
         $isEmbeddable = array_key_exists($fieldName, $metadata->embeddedClasses);
