@@ -1,0 +1,9 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: true
+
+  doctrine_migrations.diff_command:
+    class: IvozDevTools\MigrationsBundle\Command\MigrationsDiffCommand
+    tags: [{ name: console.command }]
