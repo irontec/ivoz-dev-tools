@@ -751,10 +751,6 @@ public function <methodName>(<criteriaArgument>)
             $options  = (object) $fieldMapping['options'];
 
             if (isset($field->targetEntity)) {
-                $isOneToOne = ($field->type == ClassMetadataInfo::ONE_TO_ONE);
-                if ($isOneToOne && $field->mappedBy) {
-                    continue;
-                }
 
                 $isOneToMany = ($field->type == ClassMetadataInfo::ONE_TO_MANY);
                 if ($isOneToMany) {
