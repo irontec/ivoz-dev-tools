@@ -1305,13 +1305,7 @@ public function <methodName>(<criteriaArgument>)
             $isNullable = isset($currentField->nullable) && $currentField->nullable;
         } elseif (array_key_exists($fieldName, $metadata->associationMappings)) {
             $currentAsoc = (object) $metadata->associationMappings[$fieldName];
-            $isNullableFk =
-                isset($currentAsoc->joinColumns)
-                && isset($currentAsoc->joinColumns[0])
-                && (
-                    (isset($currentAsoc->joinColumns[0]['nullable']) && $currentAsoc->joinColumns[0]['nullable'])
-                    || (isset($currentAsoc->joinColumns[0]['onDelete']) && $currentAsoc->joinColumns[0]['onDelete'] === 'set null')
-                );
+            $isNullableFk = $this->isAssociationIsNullable($currentAsoc);
             $isCascadePersisted = isset($currentAsoc->cascadePersisted) && $currentAsoc->cascadePersisted;
         }
 
