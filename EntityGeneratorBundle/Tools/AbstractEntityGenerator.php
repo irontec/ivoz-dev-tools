@@ -1249,7 +1249,11 @@ public function <methodName>(<criteriaArgument>)
             $embeddedClass['class'] = end($classSegments);
 
             $embeddedProperties = $this->generateEmbeddedPropertyDocBlock($embeddedClass);
-            $embeddedProperties = str_replace('\\' . $embeddedClass['class'], $embeddedClass['class'], $embeddedProperties);
+            $embeddedProperties = str_replace(
+                '\\' . $embeddedClass['class'],
+                $embeddedClass['class'] . ' | null',
+                $embeddedProperties
+            );
 
             $lines[] = $embeddedProperties;
             $lines[] = $this->spaces . $this->fieldVisibility . ' $' . $fieldName . ";\n";
