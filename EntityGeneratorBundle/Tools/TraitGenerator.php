@@ -135,7 +135,7 @@ protected function __toArray()
     '/**
  * <description>
  *<criteriaArgumentDoc>
- * @return <variableType>
+ * @return <variableType><nullable>
  */
 public function <methodName>(<criteriaArgument>)
 {<criteriaGetter>
@@ -1000,6 +1000,7 @@ public function <methodName>(<criteriaArgument>)
         if (array_key_exists($fieldName, $metadata->associationMappings)) {
             $currentField = (object) $metadata->associationMappings[$fieldName];
             $isNullable = !$currentField->isOwningSide;
+            $isOneToOne = ($currentField->type == ClassMetadataInfo::ONE_TO_ONE);
         }
 
         if (is_null($defaultValue) && $isNullable) {
@@ -1021,7 +1022,8 @@ public function <methodName>(<criteriaArgument>)
 
         $replacements = array(
             '<assertions>' => $this->spaces,
-            '<visibility>' => $visibility
+            '<visibility>' => $visibility,
+            '<nullable>' => ($defaultValue === 'null' && $isOneToOne/* || $isNullableFk || $isCascadePersisted*/) ? ' | null' : '',
         );
 
 
