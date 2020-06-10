@@ -15,6 +15,15 @@ use Doctrine\DBAL\Types\Type;
  */
 class TraitGenerator extends EntityGenerator
 {
+    protected $builtiInHints = [
+        'string' => 'string',
+        'integer' => 'int',
+        'boolean' => 'bool',
+        'float' => '‌float',
+        'array' => 'array',
+        '\DateTime' => '\DateTime',
+    ];
+
     protected $typeAlias = array(
         'guid'              => 'string',
         Type::DATETIMETZ    => '\DateTime',
@@ -137,7 +146,7 @@ protected function __toArray()
  *<criteriaArgumentDoc>
  * @return <variableType><nullable>
  */
-public function <methodName>(<criteriaArgument>)
+public function <methodName>(<criteriaArgument>)<returnTypeHint>
 {<criteriaGetter>
 <spaces>return $this-><fieldName><forcedArray>;
 }';
@@ -1077,9 +1086,14 @@ public function <methodName>(<criteriaArgument>)
             $criteriaGetter = $this->prefixCodeWithSpaces($criteriaGetter, 2);
         }
 
+        $returnTypeHint = '';
+        if (array_key_exists($this->getType($typeHint), $this->builtiInHints)) {
+            $returnTypeHint = ' :' . $this->builtiInHints[$this->getType($typeHint)];
+        }
+
         $response = str_replace(
-            ['<criteriaArgument>', '<criteriaArgumentDoc>', '<criteriaGetter>', '<forcedArray>'],
-            [$criteriaArgument, $criteriaArgumentDoc, $criteriaGetter, $forcedArray],
+            ['<criteriaArgument>', '<criteriaArgumentDoc>', '<criteriaGetter>', '<forcedArray>', '<returnTypeHint>'],
+            [$criteriaArgument, $criteriaArgumentDoc, $criteriaGetter, $forcedArray, $returnTypeHint],
             $response
         );
 

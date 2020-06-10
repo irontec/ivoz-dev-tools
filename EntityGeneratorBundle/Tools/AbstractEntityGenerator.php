@@ -15,6 +15,15 @@ use Doctrine\DBAL\Types\Type;
  */
 class AbstractEntityGenerator extends ParentGenerator
 {
+    protected $builtiInHints = [
+        'string' => 'string',
+        'integer' => 'int',
+        'boolean' => 'bool',
+        'float' => '‌float',
+        'array' => 'array',
+        '\DateTime' => '\DateTime',
+    ];
+
     protected $typeAlias = array(
         'guid'              => 'string',
         Type::DATETIMETZ    => '\DateTime',
@@ -211,7 +220,7 @@ protected function __toArray()
  *
  * @return <variableType><nullable>
  */
-public function <methodName>(<criteriaArgument>)
+public function <methodName>(<criteriaArgument>)<returnTypeHint>
 {<criteriaGetter>
 <spaces>return <prefix>$this-><fieldName><forcedArray><suffix>;
 }
@@ -1480,12 +1489,18 @@ public function <methodName>(<criteriaArgument>)
             $assertions =  str_repeat($this->spaces, 2);
         }
 
+        $returnTypeHint = '';
+        if (array_key_exists($this->getType($typeHint), $this->builtiInHints)) {
+            $returnTypeHint = ' :' . $this->builtiInHints[$this->getType($typeHint)];
+        }
+
         $replacements = array(
             $this->spaces . '<assertions>' => $assertions,
             '<visibility>' => $visibility,
             '<nullable>' => ($isNullable || $isNullableFk || $isCascadePersisted) ? ' | null' : '',
-            '<prefix>'             => $prefix,
-            '<suffix>'             => $suffix,
+            '<prefix>'  => $prefix,
+            '<suffix>' => $suffix,
+            '<returnTypeHint>' => $returnTypeHint,
         );
 
         if ($type == 'replace') {
