@@ -48,7 +48,7 @@ class InterfaceGenerator extends EntityGenerator
      * @var string
      */
     protected static $customMethodTemplate =
-        '<docComment><spaces>public <static>function <methodName>(<methodArguments>);';
+        '<docComment><spaces>public <static>function <methodName>(<methodArguments>)<returnHint>;';
 
 
     protected function transformMetadata(ClassMetadataInfo $metadata)
@@ -360,9 +360,22 @@ class InterfaceGenerator extends EntityGenerator
                 ? 'static '
                 : '';
 
+            $retunType = $publicMethod->getReturnType();
+            if ($retunType instanceof \ReflectionType) {
+                $retunType = $retunType->__toString();
+                $firstChar = substr($retunType, 0, 1);
+                if ($firstChar === strtoupper($firstChar)) {
+                    $retunType = '\\' . $retunType;
+                }
+            }
+
+            $returnHint = is_string($retunType)
+                ? ' :' .$retunType
+                : '';
+
             $response[$methodName] = str_replace(
-                ['<docComment>', '<static>', '<methodName>', '<methodArguments>'],
-                [$docComment, $static, $methodName, $methodParameterStr],
+                ['<docComment>', '<static>', '<methodName>', '<methodArguments>', '<returnHint>'],
+                [$docComment, $static, $methodName, $methodParameterStr, $returnHint],
                 self::$customMethodTemplate
             );
         }
