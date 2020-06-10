@@ -370,7 +370,7 @@ class InterfaceGenerator extends EntityGenerator
             }
 
             $returnHint = is_string($retunType)
-                ? ' :' .$retunType
+                ? ': ' .$retunType
                 : '';
 
             $response[$methodName] = str_replace(

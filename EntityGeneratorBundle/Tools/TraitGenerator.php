@@ -1087,7 +1087,7 @@ public function <methodName>(<criteriaArgument>)<returnTypeHint>
         }
 
         $returnTypeHint = '';
-        if (array_key_exists($this->getType($typeHint), $this->builtiInHints)) {
+        if (!$isNullable && array_key_exists($this->getType($typeHint), $this->builtiInHints)) {
             $returnTypeHint = ' :' . $this->builtiInHints[$this->getType($typeHint)];
         }
 

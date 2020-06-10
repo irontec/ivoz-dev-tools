@@ -19,7 +19,7 @@ class AbstractEntityGenerator extends ParentGenerator
         'string' => 'string',
         'integer' => 'int',
         'boolean' => 'bool',
-        'float' => '‌float',
+        'float' => 'float',
         'array' => 'array',
         '\DateTime' => '\DateTime',
     ];
@@ -1489,15 +1489,22 @@ public function <methodName>(<criteriaArgument>)<returnTypeHint>
             $assertions =  str_repeat($this->spaces, 2);
         }
 
+        $nullableHint = $isNullable || $isNullableFk || $isCascadePersisted;
         $returnTypeHint = '';
-        if (array_key_exists($this->getType($typeHint), $this->builtiInHints)) {
-            $returnTypeHint = ' :' . $this->builtiInHints[$this->getType($typeHint)];
+        $isVersionFld =
+            isset($metadata->isVersioned)
+            && isset($metadata->versionField)
+            && isset($currentField->fieldName)
+            && $metadata->versionField === $currentField->fieldName;
+
+        if (!$nullableHint && !$isVersionFld && array_key_exists($this->getType($typeHint), $this->builtiInHints)) {
+            $returnTypeHint = ': ' . $this->builtiInHints[$this->getType($typeHint)];
         }
 
         $replacements = array(
             $this->spaces . '<assertions>' => $assertions,
             '<visibility>' => $visibility,
-            '<nullable>' => ($isNullable || $isNullableFk || $isCascadePersisted) ? ' | null' : '',
+            '<nullable>' => $nullableHint ? ' | null' : '',
             '<prefix>'  => $prefix,
             '<suffix>' => $suffix,
             '<returnTypeHint>' => $returnTypeHint,
