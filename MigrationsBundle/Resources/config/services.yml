@@ -4,6 +4,13 @@ services:
     autoconfigure: true
     public: true
 
-  doctrine_migrations.diff_command:
-    class: IvozDevTools\MigrationsBundle\Command\MigrationsDiffCommand
-    tags: [{ name: console.command }]
+  doctrine.migrations.dependency_factory:
+    class: IvozDevTools\MigrationsBundle\DependencyFactory
+
+
+#        <service id="doctrine.migrations.dependency_factory" class="Doctrine\Migrations\DependencyFactory" public="false">
+#        <factory></factory>
+#        <argument type="service" id="doctrine.migrations.configuration_loader"/>
+#        <argument></argument>
+#        <argument type="service" id="logger" on-invalid="null"></argument>
+#        </service>

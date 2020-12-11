@@ -7,7 +7,3 @@ services:
   IvozDevTools\CommandlogBundle\Command\:
     resource: '%kernel.project_dir%/vendor/irontec/ivoz-dev-tools/CommandlogBundle/Command/*'
     tags: [{ name: 'console.command'}]
-
-  IvozDevTools\CommandlogBundle\Command\SnapshotCommand:
-    arguments:
-      $rootDir: '%kernel.project_dir%'
