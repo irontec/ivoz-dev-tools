@@ -67,8 +67,8 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
         $command
             ->setDescription('Creates or updates a Doctrine entity classes')
             ->addArgument(
-                'namespace',
-                InputArgument::REQUIRED,
+                'namespaces',
+                InputArgument::IS_ARRAY,
                 'doctrine.orm.mappings identifier (Ast/Cgr/Kam/Provider)'
             )
         ;
@@ -83,30 +83,34 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
 
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator)
     {
-        $targetNamespace = $this
-            ->getEntityNamespaces(
-                $input->getArgument('namespace')
+        $namespaces = $input->getArgument('namespaces');
+
+        foreach ($namespaces as $namespace) {
+            $targetNamespace = $this
+                ->getEntityNamespaces(
+                    $namespace
+                );
+
+            if (empty($targetNamespace)) {
+                throw new \Exception('Namespace identifier not found in doctrine.orm.mappings');
+            }
+
+            $allEntities = $this
+                ->doctrineHelper
+                ->getMetadata(null, true);
+
+            $targetEntities = array_filter(
+                $allEntities,
+                function ($key) use ($targetNamespace) {
+                    return strpos($key, $targetNamespace) === 0;
+                },
+                ARRAY_FILTER_USE_KEY
             );
 
-        if (is_null($targetNamespace)) {
-            throw new \Exception('Namespace identifier not found in doctrine.orm.mappings');
-        }
-
-        $allEntities = $this
-            ->doctrineHelper
-            ->getMetadata(null, true);
-
-        $targetEntities = array_filter(
-            $allEntities,
-            function ($key) use ($targetNamespace) {
-                return strpos($key, $targetNamespace) === 0;
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-
-        ksort($targetEntities);
-        foreach ($targetEntities as $name => $metadata) {
-            $this->regenerateEntities($name, true, $this->generator);
+            ksort($targetEntities);
+            foreach ($targetEntities as $name => $metadata) {
+                $this->regenerateEntities($name, true, $this->generator);
+            }
         }
 
         $io->text([
@@ -608,14 +612,6 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
 
         return $io->askQuestion($question);
     }
-//
-//    private function createClassManipulator(string $path, ConsoleStyle $io, bool $overwrite): ClassSourceManipulator
-//    {
-//        $manipulator = new ClassSourceManipulator($this->fileManager->getFileContents($path), $overwrite);
-//        $manipulator->setIo($io);
-//
-//        return $manipulator;
-//    }
 
     private function getPathOfClass(string $class): string
     {
@@ -648,37 +644,6 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
             $classOrNamespace
         );
     }
-
-//    private function getPropertyNames(string $class): array
-//    {
-//        if (!class_exists($class)) {
-//            return [];
-//        }
-//
-//        $reflClass = new \ReflectionClass($class);
-//
-//        return array_map(function (\ReflectionProperty $prop) {
-//            return $prop->getName();
-//        }, $reflClass->getProperties());
-//    }
-//
-//    private function doesEntityUseAnnotationMapping(string $className): bool
-//    {
-//        if (!class_exists($className)) {
-//            $otherClassMetadatas = $this->doctrineHelper->getMetadata(Str::getNamespace($className).'\\', true);
-//
-//            // if we have no metadata, we should assume this is the first class being mapped
-//            if (empty($otherClassMetadatas)) {
-//                return false;
-//            }
-//
-//            $className = reset($otherClassMetadatas)->getName();
-//        }
-//
-//        $driver = $this->doctrineHelper->getMappingDriverForClass($className);
-//
-//        return $driver instanceof AnnotationDriver;
-//    }
 
     private function getEntityNamespace(): string
     {

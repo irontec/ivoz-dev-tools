@@ -228,7 +228,7 @@ final class DtoRegenerator
                 case ClassMetadata::ONE_TO_MANY:
                     $relation = (new RelationOneToMany())
                         ->setPropertyName($mapping['fieldName'])
-                        ->setTargetClassName($mapping['targetEntity'])
+                        ->setTargetClassName($mapping['targetEntity'] . 'Dto')
                         ->setTargetPropertyName($mapping['mappedBy'])
                         ->setOrphanRemoval($mapping['orphanRemoval']);
 
@@ -238,7 +238,7 @@ final class DtoRegenerator
                 case ClassMetadata::MANY_TO_MANY:
                     $relation = (new RelationManyToMany())
                         ->setPropertyName($mapping['fieldName'])
-                        ->setTargetClassName($mapping['targetEntity'])
+                        ->setTargetClassName($mapping['targetEntity'] . 'Dto')
                         ->setTargetPropertyName($mapping['mappedBy'])
                         ->setIsOwning($mapping['isOwningSide'])
                         ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true);
@@ -249,7 +249,7 @@ final class DtoRegenerator
                 case ClassMetadata::ONE_TO_ONE:
                     $relation = (new RelationOneToOne())
                         ->setPropertyName($mapping['fieldName'])
-                        ->setTargetClassName($mapping['targetEntity'])
+                        ->setTargetClassName($mapping['targetEntity'] . 'Dto')
                         ->setTargetPropertyName($mapping['isOwningSide'] ? $mapping['inversedBy'] : $mapping['mappedBy'])
                         ->setIsOwning($mapping['isOwningSide'])
                         ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true)

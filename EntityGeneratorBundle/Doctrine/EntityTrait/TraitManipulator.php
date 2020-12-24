@@ -6,10 +6,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Setter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Getter as SingularGetter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Property;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Setter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\StringNode;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\UseStatement;
 use PhpParser\Lexer;
@@ -126,7 +126,7 @@ final class TraitManipulator implements ManipulatorInterface
 
         $comments += $this->buildPropertyCommentLines($columnOptions);
         $isCollection = in_array(
-        $property['type'] ?? null,
+            $property['type'] ?? null,
             [
                 ClassMetadata::ONE_TO_MANY,
                 ClassMetadata::MANY_TO_MANY
@@ -335,7 +335,7 @@ final class TraitManipulator implements ManipulatorInterface
         $this->methods[] = new Setter(
             $relation->getPropertyName(),
             $typeHint,
-            false,
+            $relation->isNullable(),
             $comments,
             [],
             $classMetadata,
@@ -353,7 +353,7 @@ final class TraitManipulator implements ManipulatorInterface
         $this->methods[] = new SingularGetter(
             $relation->getPropertyName(),
             $relation->getCustomReturnType() ?: $typeHint,
-            false,
+            true,
             $getterComments
         );
     }
@@ -564,7 +564,7 @@ final class TraitManipulator implements ManipulatorInterface
         $template = <<<'TPL'
 if (!is_null($dto->[GETTER]())) {
             $[INSTANCE]->[REPLACER](
-                $fkTransformer->transformCollection(
+                $fkTransformer->[TRANSFORMER](
                     $dto->[GETTER]()
                 )
             );
@@ -582,9 +582,13 @@ TPL;
                 ? 'replace' . Str::asCamelCase($property->getName())
                 : 'set' . Str::asCamelCase($property->getName());
 
+            $transformer = $property->isCollection()
+                ? 'transformCollection'
+                : 'transform';
+
             $src[] = str_replace(
-                ['[INSTANCE]', '[GETTER]', '[REPLACER]'],
-                ['self', $getter, $replacer],
+                ['[INSTANCE]', '[GETTER]', '[REPLACER]', '[TRANSFORMER]'],
+                ['self', $getter, $replacer, $transformer],
                 $template
             );
         }
@@ -615,9 +619,13 @@ TPL;
                 ? 'replace' . Str::asCamelCase($property->getName())
                 : 'set' . Str::asCamelCase($property->getName());
 
+            $transformer = $property->isCollection()
+                ? 'transformCollection'
+                : 'transform';
+
             $src[] = str_replace(
-                ['[INSTANCE]', '[GETTER]', '[REPLACER]'],
-                ['this', $getter, $replacer],
+                ['[INSTANCE]', '[GETTER]', '[REPLACER]', '[TRANSFORMER]'],
+                ['this', $getter, $replacer, $transformer],
                 $template
             );
         }

@@ -78,13 +78,6 @@ final class EntityManipulator implements ManipulatorInterface
         $leftPad = str_repeat(' ', 4);
 
         $this->updateClass(
-            self::CLASS_USE_STATEMENT_PLACEHOLDER,
-            $this->useStatements,
-            '',
-            "\n"
-        );
-
-        $this->updateClass(
             self::CLASS_ATTRIBUTE_PLACEHOLDER,
             $this->properties,
             $leftPad
@@ -106,6 +99,13 @@ final class EntityManipulator implements ManipulatorInterface
             self::CLASS_METHOD_PLACEHOLDER,
             $this->methods,
             $leftPad
+        );
+
+        $this->updateClass(
+            self::CLASS_USE_STATEMENT_PLACEHOLDER,
+            $this->useStatements,
+            '',
+            "\n"
         );
 
         // Remove black lines
@@ -139,13 +139,16 @@ final class EntityManipulator implements ManipulatorInterface
         $comments += $this->buildPropertyCommentLines($columnOptions);
         $defaultValue = $columnOptions['options']['default'] ?? null;
 
-        if ($defaultValue) {
+        if (!is_null($defaultValue)) {
             switch ($typeHint) {
                 case 'int':
                     $defaultValue = intval($defaultValue);
                     break;
                 case 'float':
                     $defaultValue = floatval($defaultValue);
+                    break;
+                case 'bool':
+                    $defaultValue = $defaultValue !== '0';
                     break;
             }
         }
@@ -386,7 +389,8 @@ final class EntityManipulator implements ManipulatorInterface
         );
 
         $typeHint = $this->addUseStatementIfNecessary(
-            $relation->getTargetClassName()
+            $relation->getTargetClassName(),
+            $classMetadata
         );
 
         if ($relation->getTargetClassName() == $this->getThisFullClassName()) {
@@ -420,7 +424,8 @@ final class EntityManipulator implements ManipulatorInterface
 
         // Setter
 
-        $setterHint = $relation->isNullable()
+        $nullableSetter = $relation->isNullable();
+        $setterHint = $nullableSetter
             ? '@param ' . $typeHint .  ' | null'
             : '@param ' . $typeHint;
 
@@ -435,7 +440,7 @@ final class EntityManipulator implements ManipulatorInterface
         $this->addSetter(
             $relation->getPropertyName(),
             $typeHint,
-            $relation->isNullable(),
+            $nullableSetter,
             $setterComments,
             [],
             $classMetadata,
@@ -443,7 +448,7 @@ final class EntityManipulator implements ManipulatorInterface
         );
 
         // Getter
-        $returnHint = $relation->isNullable()
+        $returnHint = $nullableSetter
             ? '@return ' . $typeHint .  ' | null'
             : '@return ' . $typeHint;
 
@@ -456,23 +461,36 @@ final class EntityManipulator implements ManipulatorInterface
         $this->addGetter(
             $relation->getPropertyName(),
             $relation->getCustomReturnType() ?: $typeHint,
-            $relation->isNullable(),
+            $nullableSetter,
             $getterComments
         );
-
-        if ($relation->shouldAvoidSetter()) {
-            return;
-        }
     }
 
     /**
      * @return string The alias to use when referencing this class
      */
-    public function addUseStatementIfNecessary(string $class): string
+    public function addUseStatementIfNecessary(string $class, ClassMetadata $classMetadata = null): string
     {
+        $needle = [
+            'Interface',
+            'Abstract'
+        ];
+
+        $namespace = Str::getNamespace($class);
+        $namespace2 = Str::getNamespace($classMetadata->name ?? '');
+
         $shortClassName = Str::getShortClassName($class);
-        if ($this->isInSameNamespace($class)) {
+        $shortClassName2 = Str::getShortClassName($classMetadata->name ?? '');
+
+        $fixedShortClassName = str_replace($needle, '', $shortClassName);
+        $fixedShortClassName2 = str_replace($needle, '', $shortClassName2);
+
+        if ($namespace === $namespace2) {
             return $shortClassName;
+        }
+
+        if ($fixedShortClassName === $fixedShortClassName2) {
+            return '\\' . $class;
         }
 
         if (!array_key_exists($class, $this->useStatements)) {
@@ -782,10 +800,14 @@ final class EntityManipulator implements ManipulatorInterface
                 $targetClass = str_replace(
                     'Interface',
                     '',
-                    $property->getForeignKeyFqdn(true)
+                    $property->getForeignKeyFqdn(false)
                 );
 
-                $src[] = '->' . $setter . '(' . $targetClass . '::entityToDto(self::' . $getter . '(), $depth))';
+                $shortTargetClass = $this->addUseStatementIfNecessary(
+                    $targetClass
+                );
+
+                $src[] = '->' . $setter . '(' . $shortTargetClass . '::entityToDto(self::' . $getter . '(), $depth))';
 
             } else {
                 $src[] = '->' . $setter . '(self::' . $getter . '())';

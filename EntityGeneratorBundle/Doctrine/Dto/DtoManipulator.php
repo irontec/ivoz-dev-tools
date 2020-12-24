@@ -2,8 +2,6 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Dto;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EmbeddedProperty;
@@ -12,7 +10,6 @@ use IvozDevTools\EntityGeneratorBundle\Doctrine\Property;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\StringNode;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\UseStatement;
 use PhpParser\Builder;
-use PhpParser\BuilderHelpers;
 use PhpParser\Lexer;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
@@ -25,7 +22,6 @@ use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToOne;
 use Symfony\Bundle\MakerBundle\Str;
-use Symfony\Bundle\MakerBundle\Util\ClassNameValue;
 
 /**
  * @internal
@@ -123,13 +119,16 @@ final class DtoManipulator implements ManipulatorInterface
         $comments += $this->buildPropertyCommentLines($columnOptions);
         $defaultValue = $columnOptions['options']['default'] ?? null;
 
-        if ($defaultValue) {
+        if (!is_null($defaultValue)) {
             switch ($typeHint) {
                 case 'int':
                     $defaultValue = intval($defaultValue);
                     break;
                 case 'float':
                     $defaultValue = floatval($defaultValue);
+                    break;
+                case 'bool':
+                    $defaultValue = $defaultValue !== '0';
                     break;
             }
         }
@@ -255,7 +254,6 @@ final class DtoManipulator implements ManipulatorInterface
         );
     }
 
-
     public function addIdSetter(
         string $propertyName,
         $type,
@@ -362,9 +360,8 @@ final class DtoManipulator implements ManipulatorInterface
 
     private function addSingularRelation(BaseRelation $relation, $classMetadata)
     {
-        $columnName = $classMetadata->getColumnName(
-            $relation->getPropertyName()
-        );
+        $propertyName = $relation->getPropertyName();
+        $columnName = $classMetadata->associationMappings[$propertyName]['joinColumns'][0]['name'] ?? $propertyName;
 
         $typeHint = $this->addUseStatementIfNecessary(
             $relation->getTargetClassName()
@@ -383,7 +380,7 @@ final class DtoManipulator implements ManipulatorInterface
             $columnName,
             $comments,
             null,
-           true,
+            true,
             $relation->getTargetClassName()
         );
 
@@ -450,7 +447,7 @@ final class DtoManipulator implements ManipulatorInterface
         );
 
         $typeHint = $this->addUseStatementIfNecessary(
-            $relation->getTargetClassName() . 'Dto'
+            $relation->getTargetClassName()
         );
 
         if ($relation->getTargetClassName() == $this->getThisFullClassName()) {
@@ -481,7 +478,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addSetter(
             $relation->getPropertyName(),
-            $typeHint,
+            'array',
             true,
             $setterComments,
             [],
@@ -498,7 +495,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addGetter(
             $relation->getPropertyName(),
-            $relation->getCustomReturnType() ?: $typeHint,
+            'array',
             true,
             $getterComments
         );
@@ -782,7 +779,7 @@ final class DtoManipulator implements ManipulatorInterface
             $src .=
                 "\n" . str_repeat($leftPad, 4)
                 . '\''
-                . $property->getName()
+                . $property->getColumnName()
                 . '\',';
         }
         $src .= "\n" . str_repeat($leftPad, 3) . "]";

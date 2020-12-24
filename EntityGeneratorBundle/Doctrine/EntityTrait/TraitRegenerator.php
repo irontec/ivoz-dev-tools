@@ -171,7 +171,7 @@ final class TraitRegenerator
                         ->setTargetPropertyName(
                             $mapping['mappedBy']
                         )
-                        ->setIsOwning($mapping['isOwningSide'])
+                        ->setIsOwning(false)
                         ->setMapInverseRelation(
                             true
                         )

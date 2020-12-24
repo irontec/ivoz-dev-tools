@@ -47,6 +47,12 @@ class DtoSetter implements CodeGeneratorUnitInterface
             ? '?' . $this->type
             : $this->type;
 
+        if ($this->type === '\\DateTimeInterface') {
+            $typeHint = '';
+        } else {
+            $typeHint .= ' ';
+        }
+
         $nullableStr = $this->isNullable
             ? ' = null'
             : '';
@@ -54,7 +60,7 @@ class DtoSetter implements CodeGeneratorUnitInterface
         $methodName = 'set' . Str::asCamelCase($this->propertyName);
 
         $response[] = sprintf(
-            '%s function %s(%s %s%s): self',
+            '%s function %s(%s%s%s): self',
             $this->visibility,
             $methodName,
             $typeHint,

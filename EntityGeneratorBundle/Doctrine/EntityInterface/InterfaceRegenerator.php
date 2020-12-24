@@ -5,10 +5,6 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\EntityInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Generator;
-use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
-use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
-use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToMany;
-use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToOne;
 use Symfony\Bundle\MakerBundle\FileManager;
 
 /**

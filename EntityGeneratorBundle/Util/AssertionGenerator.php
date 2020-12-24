@@ -29,7 +29,20 @@ class AssertionGenerator
 
         if (in_array($currentField->type, ['datetime'])) {
 
-            $call = '$var = DateTimeHelper::createOrFix('
+            $call = '';
+            if (isset($columnOptions['nullable']) && $columnOptions['nullable']) {
+                $call =
+                    'Assertion::notNull('
+                    . "\n$nlLeftPad"
+                    . '$var,'
+                    . "\n$nlLeftPad"
+                    . '\'$fldName value "%s" is null, but non null value was expected.\''
+                    . "\n"
+                    . ');';
+            }
+
+            $call .= "\n"
+                . '$var = DateTimeHelper::createOrFix('
                 . "\n$nlLeftPad"
                 .'$var,'
                 . "\n$nlLeftPad"

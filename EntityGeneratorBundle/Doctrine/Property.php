@@ -82,14 +82,22 @@ class Property implements CodeGeneratorUnitInterface
         $response[] = ' */';
 
         $attr = $this->visibility . ' $' . $this->name;
-        if ($this->defaultValue) {
+        if (!is_null($this->defaultValue)) {
 
             if (is_array($this->defaultValue)) {
                 $defaultValue = '[]';
             } else {
-                $defaultValue = is_numeric($this->defaultValue)
-                    ? $this->defaultValue
-                    : '\'' . $this->defaultValue . '\'';
+                $defaultValue = $this->defaultValue;
+
+                switch(gettype($this->defaultValue)) {
+                    case 'boolean':
+                        $defaultValue = $this->defaultValue
+                            ? 'true'
+                            : 'false';
+                        break;
+                    case 'string':
+                        $defaultValue = '\'' . $this->defaultValue . '\'';
+                }
             }
 
             $attr .= sprintf(

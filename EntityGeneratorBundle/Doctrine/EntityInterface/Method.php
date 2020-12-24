@@ -29,6 +29,11 @@ class Method implements CodeGeneratorUnitInterface
         $this->comments = $comments;
     }
 
+    public function getName()
+    {
+        return $this->method;
+    }
+
     public function toString(string $nlLeftPad = ''): string
     {
         foreach ($this->comments as $comment) {

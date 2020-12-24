@@ -2,12 +2,11 @@
 
 namespace <?= $namespace ?>;
 
-use Ivoz\Core\Domain\Model\EntityInterface;
 /*__interface_use_statements*/
 /**
 * <?= $class_name . "\n" ?>
 */
-interface <?= $class_name ?> extends EntityInterface
+interface <?= $class_name ?> /*__interface_extends*/
 {
     /*__interface_body*/
 }

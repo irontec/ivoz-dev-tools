@@ -20,6 +20,7 @@ final class InterfaceManipulator implements ManipulatorInterface
 {
     const INTERFACE_USE_STATEMENT_PLACEHOLDER = '/*__interface_use_statements*/';
     const INTERFACE_BODY_PLACEHOLDER = '/*__interface_body*/';
+    const INTERFACE_EXTENDS_PLACEHOLDER = '/*__interface_extends*/';
 
     private $lexer;
 
@@ -28,7 +29,7 @@ final class InterfaceManipulator implements ManipulatorInterface
     /** @var CodeGeneratorUnitInterface[]  */
     private $properties = [];
 
-    /** @var CodeGeneratorUnitInterface[]  */
+    /** @var Method[]  */
     private $methods = [];
     /** @var UseStatement[]  */
     private $useStatements = [];
@@ -131,6 +132,34 @@ final class InterfaceManipulator implements ManipulatorInterface
 
     public function updateSourceCode()
     {
+        $interfaces = [];
+        foreach ($this->methods as $method) {
+            if ($method->getName() === 'getChangeSet') {
+                $interfaces[] = $this->addUseStatementIfNecessary(
+                    'Ivoz\\Core\\Domain\\Model\\LoggableEntityInterface'
+                );
+            }
+
+            if ($method->getName() === 'getTempFiles') {
+                $interfaces[] = $this->addUseStatementIfNecessary(
+                    'Ivoz\\Core\\Domain\\Service\\FileContainerInterface'
+                );
+            }
+        }
+
+        if (empty($interfaces)) {
+            $interfaces[] = $this->addUseStatementIfNecessary(
+                'Ivoz\\Core\\Domain\\Model\\EntityInterface'
+            );
+        }
+
+        $this->updateClass(
+            self::INTERFACE_EXTENDS_PLACEHOLDER,
+            [new InterfaceExtends(implode(', ', $interfaces))],
+            '',
+            ''
+        );
+
         $this->updateClass(
             self::INTERFACE_USE_STATEMENT_PLACEHOLDER,
             $this->useStatements,
@@ -162,12 +191,25 @@ final class InterfaceManipulator implements ManipulatorInterface
      */
     public function addUseStatementIfNecessary(string $class, ClassMetadata $classMetadata = null): string
     {
+        $needle = [
+            'Interface',
+            'Abstract'
+        ];
+
+        $namespace = Str::getNamespace($class);
+        $namespace2 = Str::getNamespace($classMetadata->name ?? '');
+
         $shortClassName = Str::getShortClassName($class);
-        if ($classMetadata && $classMetadata->name == $class) {
+        $shortClassName2 = Str::getShortClassName($classMetadata->name ?? '');
+
+        $fixedShortClassName = str_replace($needle, '', $shortClassName);
+        $fixedShortClassName2 = str_replace($needle, '', $shortClassName2);
+
+        if ($namespace === $namespace2) {
             return $shortClassName;
         }
 
-        if ($shortClassName === Str::getShortClassName($classMetadata->name)) {
+        if ($fixedShortClassName === $fixedShortClassName2) {
             return '\\' . $class;
         }
 

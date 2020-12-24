@@ -216,6 +216,25 @@ final class EntityRegenerator
                 return true;
             }
 
+            if ($mapping['inversedBy'] ?? false) {
+                $targetMetadata = $this->doctrineHelper->getMetadata(
+                    $mapping['targetEntity']
+                );
+
+                $targetFld = $targetMetadata->associationMappings[
+                    $mapping['inversedBy']
+                ];
+
+                $isCascadePersisted = in_array(
+                    'persist',
+                    $targetFld['cascade'] ?? []
+                );
+
+                if ($isCascadePersisted) {
+                    return true;
+                }
+            }
+
             return $mapping['joinColumns'][0]['nullable'];
         };
 

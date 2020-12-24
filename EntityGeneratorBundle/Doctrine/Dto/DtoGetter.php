@@ -39,6 +39,10 @@ class DtoGetter implements CodeGeneratorUnitInterface
             ? ': ?' . $this->returnType
             : '';
 
+        if ($this->returnType === '\\DateTimeInterface') {
+            $returnHint = '';
+        }
+
         $response[] = sprintf(
             'public function %s()%s',
             $methodName,

@@ -47,6 +47,12 @@ class Setter implements CodeGeneratorUnitInterface
             ? '?' . $this->type
             : $this->type;
 
+        if ($this->type === '\\DateTimeInterface') {
+            $typeHint = '';
+        } else {
+            $typeHint .= ' ';
+        }
+
         $nullableStr = $this->isNullable
             ? ' = null'
             : '';
@@ -59,7 +65,7 @@ class Setter implements CodeGeneratorUnitInterface
             : $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
 
         $response[] = sprintf(
-            '%s function %s(%s %s%s): %s',
+            '%s function %s(%s%s%s): %s',
             $this->visibility,
             $methodName,
             $typeHint,
