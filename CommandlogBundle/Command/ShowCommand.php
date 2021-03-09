@@ -53,11 +53,18 @@ class ShowCommand extends Command
                 'id'
             )
             ->addOption(
-                'detailed',
-                null,
+                'full',
+                'f',
                 InputOption::VALUE_NONE,
-                'Show detailed command payload?'
-            );
+                'Show full command payload'
+            )
+            ->addOption(
+                'deep',
+                'd',
+                InputOption::VALUE_NONE,
+                'Deep search including mass updates, deletes, etc.'
+            )
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -75,7 +82,8 @@ class ShowCommand extends Command
             $entity,
             $id,
             $output,
-            $input->getOption('detailed')
+            $input->getOption('deep'),
+            $input->getOption('full')
         );
 
         $table = new Table($output);
@@ -116,12 +124,17 @@ class ShowCommand extends Command
         throw new \Exception('Table does not exist or its not loggable');
     }
 
-    private function getEntityChangelog(string $entity, string $id, OutputInterface $output, bool $detailed)
+    private function getEntityChangelog(string $entity, string $id, OutputInterface $output, bool $deepSearch, bool $detailed)
     {
+        $deepSearchSql = $deepSearch
+            ? ' OR (entityId = 0 AND data REGEXP \':data\')'
+            : '';
+
         $queryStr =
-            'select id, commandId, data, createdOn from Changelog where entity = :entity'
-            . ' and (entityId = \':entityId\' OR (entityId = 0 and data REGEXP \':data\'))'
-            . ' order by createdOn asc, microtime asc';
+            'SELECT id, commandId, data, createdOn FROM Changelog WHERE entity = :entity'
+            . ' AND (entityId = \':entityId\''
+            . $deepSearchSql
+            . ') ORDER BY createdOn ASC, microtime ASC';
 
         $replacements = [
             ':entityId' => $id,
