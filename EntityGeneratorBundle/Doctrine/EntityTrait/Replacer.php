@@ -44,18 +44,11 @@ class Replacer implements CodeGeneratorUnitInterface
             strrpos($this->type, '\\')
         );
 
-        $response[] = '/**';
-        $response[] = ' * Replace ' . $this->propertyName;
-        $response[] = ' *';
-        $response[] = ' * @param ArrayCollection $' . $this->propertyName . ' of ' . $hint;
-        $response[] = ' *';
-        $response[] = ' * @return static';
-        $response[] = ' */';
-
         $methodName = 'replace' . $camelCaseProperty;
         $fqdnSegments = explode('\\', $this->classMetadata->name);
         $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
 
+        $response = [];
         $response[] = sprintf(
             '%s function %s(%s %s): %s',
             $this->visibility,

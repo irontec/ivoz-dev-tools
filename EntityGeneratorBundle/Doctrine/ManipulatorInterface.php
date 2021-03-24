@@ -29,7 +29,7 @@ interface ManipulatorInterface
 
     public function addManyToManyRelation(RelationManyToMany $manyToMany, ClassMetadata $classMetadata);
 
-    public function addInterface(string $interfaceName);
+    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null);
 
     public function addAccessorMethod(string $propertyName, string $methodName, $returnType, bool $isReturnTypeNullable, array $commentLines = [], $typeCast = null);
 

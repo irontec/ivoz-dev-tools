@@ -9,18 +9,13 @@ class EmbeddedGetter extends Getter
 {
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        $response[] = ' * Get ' . $this->propertyName;
-        $response[] = ' *';
-        $response[] = ' * @return ' . $this->returnType;
-        $response[] = ' */';
-
         $returnType = $this->isReturnTypeNullable
             ? '?' . $this->returnType
             : $this->returnType;
 
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
+        $response = [];
         $response[] = sprintf(
             'public function %s(): %s',
             $methodName,
@@ -28,7 +23,7 @@ class EmbeddedGetter extends Getter
         );
         $response[] = '{';
 
-        if ($this->returnType === '\\DateTimeInterface') {
+        if ($this->returnType === '\\DateTime') {
             $response[] =
                 '    return !is_null($this->'
                 . $this->propertyName

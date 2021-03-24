@@ -33,6 +33,7 @@ final class InterfaceRegenerator
 
         $classMetadata->name = $fqdn;
         $classMetadata->rootEntityName = $fqdn;
+        $interfaces = $this->getParentInterfaces($fqdn);
 
         [$classPath, $content] = $this->getClassTemplate(
             $classMetadata,
@@ -43,6 +44,15 @@ final class InterfaceRegenerator
             $classPath,
             $content
         );
+
+        foreach ($interfaces as $interface) {
+            $manipulator->addInterface(
+                $interface,
+                $classMetadata
+            );
+        }
+
+        $manipulator->updateSourceCode();
 
         $this->dumpFile(
             $classPath,
@@ -60,6 +70,7 @@ final class InterfaceRegenerator
 
         $classMetadata->name = $fqdn;
         $classMetadata->rootEntityName = $fqdn;
+        $interfaces = $this->getParentInterfaces($fqdn);
 
         [$classPath, $content] = $this->getClassTemplate(
             $classMetadata,
@@ -70,6 +81,13 @@ final class InterfaceRegenerator
             $classPath,
             $content
         );
+
+        foreach ($interfaces as $interface) {
+            $manipulator->addInterface(
+                $interface,
+                $classMetadata
+            );
+        }
 
         $this->addMethods(
             $manipulator,
@@ -187,5 +205,65 @@ final class InterfaceRegenerator
         }
 
         $manipulator->updateSourceCode();
+    }
+
+    private function getParentInterfaces(string $defaultImplementationClassName, bool $fqdn = true)
+    {
+        $parentInterfaces = [];
+        try {
+            $defaultImplementationReflection = new \ReflectionClass($defaultImplementationClassName);
+            $getChangeSetMethod = $defaultImplementationReflection->getMethod('getChangeSet');
+
+            $parentInterfaces[] = $getChangeSetMethod->isPublic()
+                ? 'Ivoz\\Core\\Domain\\Model\\LoggableEntityInterface'
+                : 'Ivoz\\Core\\Domain\\Model\\EntityInterface';
+
+            $implementedInterfaces = $defaultImplementationReflection->getInterfaceNames();
+
+            if (!empty($implementedInterfaces)) {
+                $parentInterfaces = array_merge(
+                    $implementedInterfaces,
+                    $parentInterfaces
+                );
+            }
+        } catch (\Exception $e) {
+            $parentInterfaces = ['Ivoz\\Core\\Domain\\Model\\EntityInterface'];
+        }
+
+        $parentInterfaces = array_filter(
+            $parentInterfaces,
+            function ($className) use ($currentInterface) {
+
+                if ($className === $currentInterface) {
+                    return false;
+                }
+
+                return stripos($className, 'Ivoz\\') === 0;
+            }
+        );
+
+        $potentiallyDuplicated = [];
+        foreach ($parentInterfaces as $interfaceFqdn) {
+            $interfaceReflection = new \ReflectionClass($interfaceFqdn);
+            $interfaces = $interfaceReflection->getInterfaceNames();
+
+            foreach ($interfaces as $item) {
+                $potentiallyDuplicated[] = $item;
+            }
+        }
+
+        $parentInterfaces = array_diff($parentInterfaces, $potentiallyDuplicated);
+
+        if (!$fqdn) {
+            $parentInterfaces = array_map(
+                function ($item) {
+                    $segments = explode('\\', $item);
+                    return end($segments);
+                },
+                $parentInterfaces
+            );
+        }
+
+        return array_unique($parentInterfaces);
     }
 }

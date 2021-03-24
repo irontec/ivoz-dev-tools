@@ -9,17 +9,14 @@ class FkSetter extends Setter
 {
     public function toString(string $nlLeftPad = ''): string
     {
-        $response = [];
-        $response[] = '/**';
-        $response[] = ' * @return static';
-        $response[] = ' */';
-
         $methodName = 'set' . Str::asCamelCase($this->propertyName);
 
+        $response = [];
         $response[] = sprintf(
-            '%s function %sId($id): self',
+            '%s function %sId($id): %s',
             $this->visibility,
-            $methodName
+            $methodName,
+            'static'
         );
 
         $response[] = '{';

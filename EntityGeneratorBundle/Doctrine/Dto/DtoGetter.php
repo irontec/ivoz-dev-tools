@@ -26,23 +26,15 @@ class DtoGetter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        foreach ($this->comments as $comment) {
-            $response[] = !empty(trim($comment))
-                ? ' * ' . $comment
-                : ' *';
-        }
-        $response[] = ' */';
-
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
-        $returnHint = $this->returnType
-            ? ': ?' . $this->returnType
-            : '';
 
-        if ($this->returnType === '\\DateTimeInterface') {
-            $returnHint = '';
+        if ($this->returnType && strpos($this->returnType, '|')) {
+            $returnHint = ': ' . $this->returnType . '|null';
+        } elseif ($this->returnType) {
+            $returnHint = ': ?' . $this->returnType;
         }
 
+        $response = [];
         $response[] = sprintf(
             'public function %s()%s',
             $methodName,

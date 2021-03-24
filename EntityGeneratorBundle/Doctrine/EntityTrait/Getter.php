@@ -26,16 +26,9 @@ class Getter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        foreach ($this->comments as $comment) {
-            $response[] = !empty(trim($comment))
-                ? ' * ' . $comment
-                : ' *';
-        }
-        $response[] = ' */';
-
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
+        $response = [];
         $response[] = sprintf(
             'public function %s(Criteria $criteria = null): array',
             $methodName

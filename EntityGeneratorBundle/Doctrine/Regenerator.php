@@ -2,7 +2,7 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine;
 
-use Doctrine\Common\Persistence\Mapping\MappingException as LegacyCommonMappingException;
+use Doctrine\Persistence\Mapping\MappingException as LegacyCommonMappingException;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\MappingException;
 use Doctrine\Persistence\Mapping\MappingException as PersistenceMappingException;
@@ -97,7 +97,7 @@ final class Regenerator
 
     /**
      * @param string $classOrNamespace
-     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata|ClassMetadata|\Doctrine\Persistence\Mapping\ClassMetadata
+     * @return \Doctrine\Persistence\Mapping\ClassMetadata|ClassMetadata|\Doctrine\Persistence\Mapping\ClassMetadata
      */
     private function getMetadata(string $classOrNamespace)
     {

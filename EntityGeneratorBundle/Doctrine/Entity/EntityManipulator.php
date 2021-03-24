@@ -4,6 +4,7 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Entity;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Getter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Property;
@@ -28,6 +29,8 @@ use Symfony\Bundle\MakerBundle\Str;
  */
 final class EntityManipulator implements ManipulatorInterface
 {
+    use EntityTypeTrait;
+
     const CLASS_USE_STATEMENT_PLACEHOLDER = '/*__class_use_statements*/';
     const CLASS_ATTRIBUTE_PLACEHOLDER = '/*__class_attributes*/';
     const CLASS_METHOD_PLACEHOLDER = '/*__class_methods*/';
@@ -126,8 +129,7 @@ final class EntityManipulator implements ManipulatorInterface
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
-
-        if ($typeHint == '\\DateTimeInterface') {
+        if ($typeHint == '\\DateTime') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -150,11 +152,18 @@ final class EntityManipulator implements ManipulatorInterface
                 case 'bool':
                     $defaultValue = $defaultValue !== '0';
                     break;
+                case '\\DateTime':
+                    $defaultValue = null;
+                    break;
             }
         }
 
         if ('array' === $typeHint) {
             $defaultValue = [];
+        }
+
+        if ($defaultValue === 'CURRENT_TIMESTAMP') {
+            $defaultValue = null;
         }
 
         $this->addProperty(
@@ -174,26 +183,11 @@ final class EntityManipulator implements ManipulatorInterface
                 $paramDoc .= ' | null';
             }
 
-            $returnHint = substr(
-                $classMetadata->name,
-                strrpos($classMetadata->name, '\\') + 1
-            );
-
-            $returnHint = str_replace('Abstract', '', $returnHint) . 'Interface';
-
-            $setterComments = [
-                'Set ' . $propertyName,
-                '',
-                $paramDoc,
-                '',
-                '@return static'
-            ];
-
             $this->addSetter(
                 $propertyName,
                 $typeHint,
                 $nullable,
-                $setterComments,
+                [],
                 $columnOptions,
                 $classMetadata
             );
@@ -248,7 +242,7 @@ final class EntityManipulator implements ManipulatorInterface
     {
     }
 
-    public function addInterface(string $interfaceName)
+    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
     {
     }
 
@@ -397,9 +391,10 @@ final class EntityManipulator implements ManipulatorInterface
             $typeHint = 'self';
         }
 
-        $comments = [
-            '@var ' . $typeHint
-        ];
+        $comments = [];
+        $comments[] = $relation->isNullable()
+            ? '@var ' . $typeHint. ' | null'
+            : '@var ' . $typeHint;
 
         $setterVisibility = 'protected';
         if ($relation->isOwning()) {
@@ -433,8 +428,6 @@ final class EntityManipulator implements ManipulatorInterface
             'Set ' . $relation->getPropertyName(),
             '',
             $setterHint,
-            '',
-            '@return static'
         ];
 
         $this->addSetter(
@@ -537,55 +530,6 @@ final class EntityManipulator implements ManipulatorInterface
         $traverser->traverse($this->ast);
 
         return $visitor->getFoundNode();
-    }
-
-    private function getEntityTypeHint($doctrineType)
-    {
-        switch ($doctrineType) {
-            case 'string':
-            case 'text':
-            case 'guid':
-                return 'string';
-
-            case 'array':
-            case 'simple_array':
-            case 'json':
-            case 'json_array':
-                return 'array';
-
-            case 'boolean':
-                return 'bool';
-
-            case 'bigint':
-            case 'integer':
-            case 'smallint':
-                return 'int';
-
-            case 'decimal':
-            case 'float':
-                return 'float';
-
-            case 'datetime':
-            case 'datetimetz':
-            case 'date':
-            case 'time':
-                return '\\'.\DateTimeInterface::class;
-
-            case 'datetime_immutable':
-            case 'datetimetz_immutable':
-            case 'date_immutable':
-            case 'time_immutable':
-                return '\\'.\DateTimeImmutable::class;
-
-            case 'dateinterval':
-                return '\\'.\DateInterval::class;
-
-            case 'object':
-            case 'binary':
-            case 'blob':
-            default:
-                return null;
-        }
     }
 
     private function isInSameNamespace($class)

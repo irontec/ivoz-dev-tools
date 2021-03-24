@@ -25,18 +25,9 @@ class Getter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        foreach ($this->comments as $comment) {
-            $response[] = !empty(trim($comment))
-                ?' * ' . $comment
-                : ' *';
-        }
-        $response[] = ' */';
-
         $returnType = $this->isReturnTypeNullable
             ? ': ?' . $this->returnType
             : ': ' . $this->returnType;
-
 
         if (is_null($this->returnType)) {
             $returnType = '';
@@ -44,6 +35,7 @@ class Getter implements CodeGeneratorUnitInterface
 
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
+        $response = [];
         $response[] = sprintf(
             'public function %s()%s',
             $methodName,
@@ -51,7 +43,7 @@ class Getter implements CodeGeneratorUnitInterface
         );
         $response[] = '{';
 
-        if ($this->returnType === '\\DateTimeInterface') {
+        if ($this->returnType === '\\DateTime') {
 
             $clone =
                 'clone $this->'

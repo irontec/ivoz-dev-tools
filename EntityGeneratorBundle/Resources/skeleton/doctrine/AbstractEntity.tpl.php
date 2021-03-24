@@ -48,7 +48,7 @@ abstract class <?= $class_name."\n" ?>
     }
 
     /**
-     * @param null $id
+     * @param mixed $id
      * @return <?= $parent_class_name ?>Dto
      */
     public static function createDto($id = null)

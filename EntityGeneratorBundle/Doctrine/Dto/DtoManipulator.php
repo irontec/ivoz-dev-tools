@@ -5,6 +5,7 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Dto;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EmbeddedProperty;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Property;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\StringNode;
@@ -28,6 +29,8 @@ use Symfony\Bundle\MakerBundle\Str;
  */
 final class DtoManipulator implements ManipulatorInterface
 {
+    use EntityTypeTrait;
+
     const CLASS_USE_STATEMENT_PLACEHOLDER = '/*__dto_use_statements*/';
     const CLASS_ATTRIBUTE_PLACEHOLDER = '/*__dto_attributes*/';
     const CLASS_METHOD_PLACEHOLDER = '/*__dto_methods*/';
@@ -114,7 +117,13 @@ final class DtoManipulator implements ManipulatorInterface
         $embedded = false
     ) {
         $fieldName = $columnOptions['fieldName'];
-        $typeHint = $this->getEntityTypeHint($columnOptions['type']);
+        $typeHint = !in_array($fieldName, $classMetadata->identifier)
+            ? $this->getEntityTypeHint($columnOptions['type'])
+            : null;
+
+        if ($typeHint === '\\DateTime') {
+            $typeHint .= '|string';
+        }
 
         $comments += $this->buildPropertyCommentLines($columnOptions);
         $defaultValue = $columnOptions['options']['default'] ?? null;
@@ -147,8 +156,6 @@ final class DtoManipulator implements ManipulatorInterface
 
         $setterComments = [
             $paramDoc,
-            '',
-            '@return static'
         ];
 
         $this->addSetter(
@@ -199,7 +206,7 @@ final class DtoManipulator implements ManipulatorInterface
         $this->addCollectionRelation($manyToMany, $classMetadata);
     }
 
-    public function addInterface(string $interfaceName)
+    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
     {
         $this->addUseStatementIfNecessary($interfaceName);
 
@@ -348,10 +355,15 @@ final class DtoManipulator implements ManipulatorInterface
     {
         $comments = [];
 
-        $typeHint = '@var ' . $this->getEntityTypeHint($options['type']);
+        $typeHint = $this->getEntityTypeHint($options['type']);
+        if ($typeHint === '\\DateTime') {
+            $typeHint .= '|string';
+        }
+
+        $typeHint = '@var ' . $typeHint;
         $nullable = $options['nullable'] ?? false;;
         if ($nullable) {
-            $typeHint .= ' | null';
+            $typeHint .= '|null';
         }
         $comments[] = $typeHint;
 
@@ -391,8 +403,6 @@ final class DtoManipulator implements ManipulatorInterface
 
         $setterComments = [
             $setterHint,
-            '',
-            '@return static'
         ];
 
         $this->addSetter(
@@ -472,8 +482,6 @@ final class DtoManipulator implements ManipulatorInterface
 
         $setterComments = [
             $setterHint,
-            '',
-            '@return static'
         ];
 
         $this->addSetter(
@@ -555,55 +563,6 @@ final class DtoManipulator implements ManipulatorInterface
         $traverser->traverse($this->ast);
 
         return $visitor->getFoundNode();
-    }
-
-    private function getEntityTypeHint($doctrineType)
-    {
-        switch ($doctrineType) {
-            case 'string':
-            case 'text':
-            case 'guid':
-                return 'string';
-
-            case 'array':
-            case 'simple_array':
-            case 'json':
-            case 'json_array':
-                return 'array';
-
-            case 'boolean':
-                return 'bool';
-
-            case 'bigint':
-            case 'integer':
-            case 'smallint':
-                return 'int';
-
-            case 'decimal':
-            case 'float':
-                return 'float';
-
-            case 'datetime':
-            case 'datetimetz':
-            case 'date':
-            case 'time':
-                return '\\'.\DateTimeInterface::class;
-
-            case 'datetime_immutable':
-            case 'datetimetz_immutable':
-            case 'date_immutable':
-            case 'time_immutable':
-                return '\\'.\DateTimeImmutable::class;
-
-            case 'dateinterval':
-                return '\\'.\DateInterval::class;
-
-            case 'object':
-            case 'binary':
-            case 'blob':
-            default:
-                return null;
-        }
     }
 
     private function isInSameNamespace($class)

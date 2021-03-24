@@ -5,6 +5,7 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\ValueObject;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EmbeddedProperty;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Getter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Property;
@@ -29,6 +30,8 @@ use Symfony\Bundle\MakerBundle\Str;
  */
 final class ValueObjectManipulator implements ManipulatorInterface
 {
+    use EntityTypeTrait;
+
     const CLASS_USE_STATEMENT_PLACEHOLDER = '/*__class_use_statements*/';
     const CLASS_ATTRIBUTE_PLACEHOLDER = '/*__class_attributes*/';
     const CLASS_METHOD_PLACEHOLDER = '/*__class_methods*/';
@@ -120,7 +123,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
 
-        if ($typeHint == '\\DateTimeInterface') {
+        if ($typeHint == '\\DateTime') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -165,8 +168,6 @@ final class ValueObjectManipulator implements ManipulatorInterface
             'Set ' . $propertyName,
             '',
             $paramDoc,
-            '',
-            '@return static'
         ];
 
         $this->addSetter(
@@ -218,7 +219,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
     {
     }
 
-    public function addInterface(string $interfaceName)
+    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
     {
     }
 
@@ -399,8 +400,6 @@ final class ValueObjectManipulator implements ManipulatorInterface
             'Set ' . $relation->getPropertyName(),
             '',
             $setterHint,
-            '',
-            '@return static'
         ];
 
         $this->addSetter(
@@ -490,55 +489,6 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $traverser->traverse($this->ast);
 
         return $visitor->getFoundNode();
-    }
-
-    private function getEntityTypeHint($doctrineType)
-    {
-        switch ($doctrineType) {
-            case 'string':
-            case 'text':
-            case 'guid':
-                return 'string';
-
-            case 'array':
-            case 'simple_array':
-            case 'json':
-            case 'json_array':
-                return 'array';
-
-            case 'boolean':
-                return 'bool';
-
-            case 'bigint':
-            case 'integer':
-            case 'smallint':
-                return 'int';
-
-            case 'decimal':
-            case 'float':
-                return 'float';
-
-            case 'datetime':
-            case 'datetimetz':
-            case 'date':
-            case 'time':
-                return '\\'.\DateTimeInterface::class;
-
-            case 'datetime_immutable':
-            case 'datetimetz_immutable':
-            case 'date_immutable':
-            case 'time_immutable':
-                return '\\'.\DateTimeImmutable::class;
-
-            case 'dateinterval':
-                return '\\'.\DateInterval::class;
-
-            case 'object':
-            case 'binary':
-            case 'blob':
-            default:
-                return null;
-        }
     }
 
     private function isInSameNamespace($class)

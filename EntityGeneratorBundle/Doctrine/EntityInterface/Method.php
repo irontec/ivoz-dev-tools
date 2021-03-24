@@ -42,7 +42,7 @@ class Method implements CodeGeneratorUnitInterface
 
         $returnType = '';
         if (! empty($this->returnType)) {
-            $returnType = $this->isReturnTypeNullable
+            $returnType = $this->isReturnTypeNullable && strpos($this->returnType, '?') === false
                 ? ': ?' . $this->returnType
                 : ': ' . $this->returnType;
         }

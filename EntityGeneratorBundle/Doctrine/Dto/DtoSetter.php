@@ -35,37 +35,29 @@ class DtoSetter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        foreach ($this->comments as $comment) {
-            $response[] = !empty(trim($comment))
-                ?' * ' . $comment
-                : ' *';
-        }
-        $response[] = ' */';
-
-        $typeHint = $this->isNullable
-            ? '?' . $this->type
-            : $this->type;
-
-        if ($this->type === '\\DateTimeInterface') {
-            $typeHint = '';
+        if ($this->isNullable && $this->type) {
+            $typeHint = strpos($this->type, '|') !== false
+                ? 'null|' . $this->type
+                : '?' . $this->type;
         } else {
+            $typeHint = $this->type;
+        }
+
+        if($typeHint) {
             $typeHint .= ' ';
         }
 
-        $nullableStr = $this->isNullable
-            ? ' = null'
-            : '';
-
         $methodName = 'set' . Str::asCamelCase($this->propertyName);
 
+        $response = [];
         $response[] = sprintf(
-            '%s function %s(%s%s%s): self',
+            '%s function %s(%s%s%s): %s',
             $this->visibility,
             $methodName,
             $typeHint,
             '$' . $this->propertyName,
-            $nullableStr
+            $nullableStr,
+            'static'
         );
 
         $response[] = '{';

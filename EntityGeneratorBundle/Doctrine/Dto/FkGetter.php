@@ -9,13 +9,9 @@ class FkGetter extends Getter
 {
     public function toString(string $nlLeftPad = ''): string
     {
-        $response = [];
-        $response[] = '/**';
-        $response[] = ' * @return mixed | null';
-        $response[] = ' */';
-
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
+        $response = [];
         $response[] = sprintf(
             'public function %sId()',
             $methodName

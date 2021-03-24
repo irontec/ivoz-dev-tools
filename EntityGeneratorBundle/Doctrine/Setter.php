@@ -35,19 +35,11 @@ class Setter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        foreach ($this->comments as $comment) {
-            $response[] = !empty(trim($comment))
-                ?' * ' . $comment
-                : ' *';
-        }
-        $response[] = ' */';
-
         $typeHint = $this->isNullable
             ? '?' . $this->type
             : $this->type;
 
-        if ($this->type === '\\DateTimeInterface') {
+        if ($this->type === '\\DateTime') {
             $typeHint = '';
         } else {
             $typeHint .= ' ';
@@ -59,11 +51,7 @@ class Setter implements CodeGeneratorUnitInterface
 
         $methodName = 'set' . Str::asCamelCase($this->propertyName);
 
-        $fqdnSegments = explode('\\', $this->classMetadata->name);
-        $returnHint = $this->classMetadata->isEmbeddedClass
-            ? $fqdnSegments[count($fqdnSegments) -1]
-            : $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
-
+        $response = [];
         $response[] = sprintf(
             '%s function %s(%s%s%s): %s',
             $this->visibility,
@@ -71,7 +59,7 @@ class Setter implements CodeGeneratorUnitInterface
             $typeHint,
             '$' . $this->propertyName,
             $nullableStr,
-            $returnHint
+            'static'
         );
 
         $assertions = AssertionGenerator::get($this->columnOptions, $this->classMetadata, $nlLeftPad);
@@ -87,6 +75,9 @@ class Setter implements CodeGeneratorUnitInterface
         }
         $response[] = '    $this->' . $this->propertyName . ' = $' . $this->propertyName . ';';
         $response[] = '';
+        if ($this->visibility === 'public') {
+            $response[] = '    /** @var ' . $returnHint . ' $this */';
+        }
         $response[] = '    return $this;';
         $response[] = '}';
 

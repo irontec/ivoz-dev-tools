@@ -38,18 +38,11 @@ class Remover implements CodeGeneratorUnitInterface
         $camelCaseProperty = Str::asCamelCase($this->propertyName);
         $singularProperty = Str::pluralCamelCaseToSingular($camelCaseProperty);
 
-        $response[] = '/**';
-        $response[] = ' * Remove ' . $singularProperty;
-        $response[] = ' *';
-        $response[] = ' * @param ' . $this->type . ' $' . $singularProperty;
-        $response[] = ' *';
-        $response[] = ' * @return static';
-        $response[] = ' */';
-
         $methodName = 'remove' . ucfirst($singularProperty);
         $fqdnSegments = explode('\\', $this->classMetadata->name);
         $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
 
+        $response = [];
         $response[] = sprintf(
             '%s function %s(%s %s): %s',
             $this->visibility,

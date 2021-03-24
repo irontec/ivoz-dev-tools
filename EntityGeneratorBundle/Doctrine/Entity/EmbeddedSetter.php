@@ -9,12 +9,6 @@ class EmbeddedSetter extends Setter
 {
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        $response[] = ' * Set ' . $this->propertyName;
-        $response[] = ' *';
-        $response[] = ' * @return static';
-        $response[] = ' */';
-
         $typeHint = $this->isNullable
             ? '?' . $this->type
             : $this->type;
@@ -24,9 +18,8 @@ class EmbeddedSetter extends Setter
             : '';
 
         $methodName = 'set' . Str::asCamelCase($this->propertyName);
-        $fqdnSegments = explode('\\', $this->classMetadata->name);
-        $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
 
+        $response = [];
         $response[] = sprintf(
             '%s function %s(%s %s%s): %s',
             $this->visibility,
@@ -34,7 +27,7 @@ class EmbeddedSetter extends Setter
             $typeHint,
             '$' . $this->propertyName,
             $nullableStr,
-            $returnHint
+            'static'
         );
 
         $isEqual = sprintf(

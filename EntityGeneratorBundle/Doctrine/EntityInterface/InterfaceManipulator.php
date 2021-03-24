@@ -34,6 +34,9 @@ final class InterfaceManipulator implements ManipulatorInterface
     /** @var UseStatement[]  */
     private $useStatements = [];
 
+    /** @var string[]  */
+    private $interfaces = [];
+
     public function __construct(string $sourceCode)
     {
         $this->lexer = new Lexer\Emulative([
@@ -103,12 +106,9 @@ final class InterfaceManipulator implements ManipulatorInterface
         $nullableReturnType = $returnNamedTyped && $returnNamedTyped->allowsNull();
         if ($returnNamedTyped instanceof \ReflectionType) {
             $returnHint = (string) $returnNamedTyped;
-            if ($returnHint === 'self') {
-                $returnHint = substr(
-                    $classMetadata->name,
-                    strrpos($classMetadata->name, '\\') + 1
-                );
-            } else {
+            $cleanReturnHint = str_replace('?', '', $returnHint);
+
+            if ($returnHint !== 'static') {
                 if (false !== strpos($returnHint, '\\')) {
                     $returnHint = $this->addUseStatementIfNecessary(
                         $returnNamedTyped->__toString(),
@@ -116,6 +116,8 @@ final class InterfaceManipulator implements ManipulatorInterface
                     );
                 } elseif (class_exists($returnHint) || interface_exists($returnHint)) {
                     $returnHint = '\\' . $returnHint;
+                } elseif (class_exists($cleanReturnHint) || interface_exists($cleanReturnHint)) {
+                    $returnHint = str_replace('?', '?\\', $returnHint);
                 }
             }
         }
@@ -130,9 +132,17 @@ final class InterfaceManipulator implements ManipulatorInterface
         );
     }
 
+    public function addInterface(string $interface, ClassMetadata $classMetadata = null)
+    {
+        $this->interfaces[] = $this->addUseStatementIfNecessary(
+            $interface,
+            $classMetadata
+        );
+    }
+
     public function updateSourceCode()
     {
-        $interfaces = [];
+        $interfaces = $this->interfaces;
         foreach ($this->methods as $method) {
             if ($method->getName() === 'getChangeSet') {
                 $interfaces[] = $this->addUseStatementIfNecessary(
@@ -155,7 +165,7 @@ final class InterfaceManipulator implements ManipulatorInterface
 
         $this->updateClass(
             self::INTERFACE_EXTENDS_PLACEHOLDER,
-            [new InterfaceExtends(implode(', ', $interfaces))],
+            [new InterfaceExtends(implode(', ', array_unique($interfaces)))],
             '',
             ''
         );
@@ -179,6 +189,7 @@ final class InterfaceManipulator implements ManipulatorInterface
 
         $this->useStatements = [];
         $this->methods = [];
+        $this->interfaces = [];
     }
 
     public function getSourceCode(): string
@@ -191,6 +202,8 @@ final class InterfaceManipulator implements ManipulatorInterface
      */
     public function addUseStatementIfNecessary(string $class, ClassMetadata $classMetadata = null): string
     {
+        $class = str_replace('?', '', $class);
+
         $needle = [
             'Interface',
             'Abstract'
@@ -270,10 +283,6 @@ final class InterfaceManipulator implements ManipulatorInterface
     }
 
     public function addManyToManyRelation(RelationManyToMany $manyToMany, ClassMetadata $classMetadata)
-    {
-    }
-
-    public function addInterface(string $interfaceName)
     {
     }
 
