@@ -142,6 +142,11 @@ final class DtoManipulator implements ManipulatorInterface
             }
         }
 
+        $nullable = $columnOptions['nullable'] ?? true;
+        if ($typeHint === 'string' && is_null($defaultValue) && !$nullable) {
+            $defaultValue = '';
+        }
+
         $this->addProperty(
             $propertyName,
             $fieldName,
