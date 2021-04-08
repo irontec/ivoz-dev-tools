@@ -23,3 +23,6 @@ services:
       $fileManager: '@maker.file_manager'
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [{ name: 'console.command'}]
+
+  IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand:
+    tags: [{ name: 'console.command'}]
