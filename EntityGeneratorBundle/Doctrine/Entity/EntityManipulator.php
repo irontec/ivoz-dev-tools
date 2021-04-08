@@ -113,7 +113,9 @@ final class EntityManipulator implements ManipulatorInterface
 
         // Remove black lines
         $this->sourceCode = preg_replace('/^[\t|\s]+\n+/m', "\n", $this->sourceCode);
-        $this->sourceCode = preg_replace('/\n{2,}/', "\n\n", $this->sourceCode);
+        $this->sourceCode = preg_replace('/\n{2,}(\s*\})/m', "\n$1", $this->sourceCode);
+        $this->sourceCode = preg_replace('/\(\n{2,}\s*\)\;/m', "();", $this->sourceCode);
+        $this->sourceCode = preg_replace('/\(\n+(\s+)\) \{/m', "()\n$1{", $this->sourceCode);
 
         $this->useStatements = [];
         $this->properties = [];
