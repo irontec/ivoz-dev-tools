@@ -263,7 +263,7 @@ final class EntityRegenerator
 
                     $relation = (new RelationOneToOne())
                         ->setPropertyName($mapping['fieldName'])
-                        ->setTargetClassName($mapping['targetEntity'])
+                        ->setTargetClassName($mapping['targetEntity'] . 'Interface')
                         ->setTargetPropertyName($mapping['isOwningSide'] ? $mapping['inversedBy'] : $mapping['mappedBy'])
                         ->setIsOwning($mapping['isOwningSide'])
                         ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true)
