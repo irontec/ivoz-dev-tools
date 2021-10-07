@@ -1,5 +1,6 @@
 <?= "<?php\n" ?>
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace <?= $namespace ?>;
 
@@ -7,7 +8,7 @@ use Assert\Assertion;
 use Ivoz\Core\Application\DataTransferObjectInterface;
 use Ivoz\Core\Domain\Model\ChangelogTrait;
 use Ivoz\Core\Domain\Model\EntityInterface;
-use \Ivoz\Core\Application\ForeignKeyTransformerInterface;
+use Ivoz\Core\Application\ForeignKeyTransformerInterface;
 /*__class_use_statements*/
 /**
 * <?= $class_name ."\n" ?>
@@ -79,7 +80,7 @@ abstract class <?= $class_name."\n" ?>
         }
 
         /** @var <?= $parent_class_name ?>Dto $dto */
-        $dto = $entity->toDto($depth-1);
+        $dto = $entity->toDto($depth - 1);
 
         return $dto;
     }
