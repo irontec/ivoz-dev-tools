@@ -131,7 +131,7 @@ final class EntityManipulator implements ManipulatorInterface
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
-        if ($typeHint == '\\DateTime') {
+        if ($typeHint == '\\DateTimeInterface') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -154,7 +154,7 @@ final class EntityManipulator implements ManipulatorInterface
                 case 'bool':
                     $defaultValue = $defaultValue !== '0';
                     break;
-                case '\\DateTime':
+                case '\\DateTimeInterface':
                     $defaultValue = null;
                     break;
             }
@@ -170,6 +170,7 @@ final class EntityManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $propertyName,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
@@ -221,7 +222,7 @@ final class EntityManipulator implements ManipulatorInterface
         $comments = [
             '@var ' . $typeHint . ' | null'
         ];
-        $this->addEmbeddedProperty($propertyName, $propertyName, $comments, null, true, $typeHint);
+        $this->addEmbeddedProperty($propertyName, $typeHint, $propertyName, $comments, null, true, $typeHint);
         $this->addEmbeddedGetter($propertyName, $typeHint, false);
         $this->addEmbeddedSetter($propertyName, $typeHint, false, [], [], $classMetadata);
     }
@@ -315,6 +316,7 @@ final class EntityManipulator implements ManipulatorInterface
 
     public function addProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,
@@ -324,6 +326,7 @@ final class EntityManipulator implements ManipulatorInterface
     ) {
         $this->properties[] = new Property(
             $name,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
@@ -334,6 +337,7 @@ final class EntityManipulator implements ManipulatorInterface
 
     public function addEmbeddedProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,
@@ -342,6 +346,7 @@ final class EntityManipulator implements ManipulatorInterface
     ) {
         $this->properties[] = new EmbeddedProperty(
             $name,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
@@ -367,13 +372,6 @@ final class EntityManipulator implements ManipulatorInterface
                 substr($columnComment, 1, -1)
             );
         }
-
-        $typeHint = '@var ' . $this->getEntityTypeHint($options['type']);
-        $nullable = $options['nullable'] ?? false;
-        if ($nullable) {
-            $typeHint .= ' | null';
-        }
-        $comments[] = $typeHint;
 
         return $comments;
     }
@@ -411,6 +409,7 @@ final class EntityManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
+            $typeHint,
             $columnName,
             $comments,
             null,
@@ -573,7 +572,7 @@ final class EntityManipulator implements ManipulatorInterface
         foreach ($requiredProperties as $property) {
             $src[] = $property instanceof EmbeddedProperty
                 ? $property->getForeignKeyFqdn() . ' $' . $property->getName()
-                : '$' . $property->getName();
+                : $property->getHint() . ' $' . $property->getName();
         }
         $srcStr = implode(",\n" . str_repeat($leftPad, 2), $src);
 

@@ -52,6 +52,7 @@ interface ManipulatorInterface
 
     public function addProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,

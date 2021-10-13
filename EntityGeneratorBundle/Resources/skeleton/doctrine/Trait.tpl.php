@@ -29,14 +29,11 @@ trait <?= $class_name."\n" ?>
     /**
      * Factory method
      * @internal use EntityTools instead
-     * @param <?= $parent_class_name . 'Dto' ?> $dto
-     * @param ForeignKeyTransformerInterface  $fkTransformer
-     * @return static
      */
     public static function fromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ) {
+    ): static {
         /** @var static $self */
         $self = parent::fromDto($dto, $fkTransformer);
         /*__fromDto_setters*/
@@ -52,14 +49,11 @@ trait <?= $class_name."\n" ?>
 
     /**
      * @internal use EntityTools instead
-     * @param <?= $parent_class_name . 'Dto' ?> $dto
-     * @param ForeignKeyTransformerInterface  $fkTransformer
-     * @return static
      */
     public function updateFromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ) {
+    ): static {
         parent::updateFromDto($dto, $fkTransformer);
         /*__updateFromDto_body*/
         $this->sanitizeValues();
@@ -70,19 +64,15 @@ trait <?= $class_name."\n" ?>
     /**
      * @internal use EntityTools instead
      * @param int $depth
-     * @return <?= $parent_class_name . "Dto\n" ?>
      */
-    public function toDto($depth = 0)
+    public function toDto($depth = 0): <?= $parent_class_name . "Dto\n" ?>
     {
         $dto = parent::toDto($depth);
         return $dto
             ->setId($this->getId());
     }
 
-    /**
-     * @return array
-     */
-    protected function __toArray()
+    protected function __toArray(): array
     {
         return parent::__toArray() + [
             'id' => self::getId()

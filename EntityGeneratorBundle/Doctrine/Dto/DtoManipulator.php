@@ -121,7 +121,7 @@ final class DtoManipulator implements ManipulatorInterface
             ? $this->getEntityTypeHint($columnOptions['type'])
             : null;
 
-        if ($typeHint === '\\DateTime') {
+        if ($typeHint === '\\DateTimeInterface') {
             $typeHint .= '|string';
         }
 
@@ -144,6 +144,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $propertyName,
+            $typeHint ?? '',
             $fieldName,
             $comments,
             $defaultValue,
@@ -283,6 +284,7 @@ final class DtoManipulator implements ManipulatorInterface
 
     public function addProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,
@@ -294,6 +296,7 @@ final class DtoManipulator implements ManipulatorInterface
         if ($embedded) {
             $this->properties[] = new EmbeddedProperty(
                 $name,
+                $typeHint,
                 $columnName,
                 $comments,
                 $defaultValue,
@@ -307,6 +310,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->properties[] = new Property(
             $name,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
@@ -356,7 +360,7 @@ final class DtoManipulator implements ManipulatorInterface
         $comments = [];
 
         $typeHint = $this->getEntityTypeHint($options['type']);
-        if ($typeHint === '\\DateTime') {
+        if ($typeHint === '\\DateTimeInterface') {
             $typeHint .= '|string';
         }
 
@@ -389,6 +393,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
+            $typeHint,
             $columnName,
             $comments,
             null,
@@ -470,6 +475,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
+            $typeHint,
             $columnName,
             $comments,
             null,

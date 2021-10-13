@@ -298,7 +298,7 @@ final class InterfaceManipulator implements ManipulatorInterface
     {
     }
 
-    public function addProperty(string $name, string $columnName, array $comments = [], $defaultValue = null, bool $required = false, string $fkFqdn)
+    public function addProperty(string $name, string $typeHint, string $columnName, array $comments = [], $defaultValue = null, bool $required = false, string $fkFqdn)
     {
     }
 }

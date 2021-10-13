@@ -10,7 +10,7 @@ use Assert\Assertion;
 * <?= $class_name ."\n" ?>
 * @codeCoverageIgnore
 */
-class <?= $class_name."\n" ?>
+final class <?= $class_name."\n" ?>
 {
     /*__class_attributes*/
 
@@ -28,8 +28,7 @@ class <?= $class_name."\n" ?>
      */
     public function equals(/*__equals_attribute*/)
     {
-        return
-            /*__equals_body*/;
+        /*__equals_body*/;
     }
 
     /*__class_methods*/

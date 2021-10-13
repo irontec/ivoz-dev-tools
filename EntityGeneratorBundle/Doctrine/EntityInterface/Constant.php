@@ -19,6 +19,6 @@ class Constant implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        return 'const ' . $this->name . ' = \''  . $this->value . '\';';
+        return 'public const ' . $this->name . ' = \''  . $this->value . '\';';
     }
 }

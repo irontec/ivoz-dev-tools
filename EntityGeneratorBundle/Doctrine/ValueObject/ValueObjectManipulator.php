@@ -86,7 +86,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
 
         $this->updateClass(
             self::CLASS_ATTRIBUTE_PLACEHOLDER,
-            $this->properties,
+            [], //$this->properties,
             $leftPad
         );
 
@@ -123,7 +123,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
 
-        if ($typeHint == '\\DateTime') {
+        if ($typeHint == '\\DateTimeInterface') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -151,13 +151,13 @@ final class ValueObjectManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $propertyName,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
             !$nullable,
             ''
         );
-
 
         $paramDoc = '@param ' . $typeHint . ' $' . $propertyName;
         if ($nullable) {
@@ -290,6 +290,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
 
     public function addProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,
@@ -298,16 +299,19 @@ final class ValueObjectManipulator implements ManipulatorInterface
     ) {
         $this->properties[] = new Property(
             $name,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
             $required,
-            $fkFqdn
+            $fkFqdn,
+            'private'
         );
     }
 
     public function addEmbeddedProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,
@@ -316,6 +320,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
     ) {
         $this->properties[] = new EmbeddedProperty(
             $name,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
@@ -342,97 +347,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
             );
         }
 
-        $typeHint = '@var ' . $this->getEntityTypeHint($options['type']);
-        $nullable = $options['nullable'] ?? false;
-        if ($nullable) {
-            $typeHint .= ' | null';
-        }
-        $comments[] = $typeHint;
-
         return $comments;
-    }
-
-    private function addSingularRelation(BaseRelation $relation, $classMetadata)
-    {
-        $columnName = $classMetadata->getColumnName(
-            $relation->getPropertyName()
-        );
-
-        $typeHint = $this->addUseStatementIfNecessary(
-            $relation->getTargetClassName()
-        );
-
-        if ($relation->getTargetClassName() == $this->getThisFullClassName()) {
-            $typeHint = 'self';
-        }
-
-        $comments = [
-            '@var ' . $typeHint
-        ];
-
-        $setterVisibility = 'protected';
-        if ($relation->isOwning()) {
-            // sometimes, we don't map the inverse relation
-            if ($relation->getMapInverseRelation()) {
-                $comments[] = 'inversedBy ' . $relation->getTargetPropertyName();
-                $setterVisibility = 'public';
-            }
-        } else {
-            $comments[] = 'mappedBy ' . $relation->getTargetPropertyName();
-        }
-
-        $this->addProperty(
-            $relation->getPropertyName(),
-            $columnName,
-            $comments,
-            null,
-            !$relation->isNullable(),
-            $relation->getTargetClassName()
-        );
-
-        // Setter
-
-        $setterHint = $relation->isNullable()
-            ? '@param ' . $typeHint .  ' | null'
-            : '@param ' . $typeHint;
-
-        $setterComments = [
-            'Set ' . $relation->getPropertyName(),
-            '',
-            $setterHint,
-        ];
-
-        $this->addSetter(
-            $relation->getPropertyName(),
-            $typeHint,
-            $relation->isNullable(),
-            $setterComments,
-            [],
-            $classMetadata,
-            $setterVisibility
-        );
-
-        // Getter
-        $returnHint = $relation->isNullable()
-            ? '@return ' . $typeHint .  ' | null'
-            : '@return ' . $typeHint;
-
-        $getterComments = [
-            'Get ' . $relation->getPropertyName(),
-            '',
-            $returnHint,
-        ];
-
-        $this->addGetter(
-            $relation->getPropertyName(),
-            $relation->getCustomReturnType() ?: $typeHint,
-            $relation->isNullable(),
-            $getterComments
-        );
-
-        if ($relation->shouldAvoidSetter()) {
-            return;
-        }
     }
 
     /**
@@ -517,8 +432,8 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $src = [];
         foreach ($this->properties as $property) {
             $src[] = $property instanceof EmbeddedProperty
-                ? $property->getForeignKeyFqdn() . ' $' . $property->getName()
-                : '$' . $property->getName();
+                ? 'private ' . $property->getForeignKeyFqdn() . ' $' . $property->getName()
+                : 'private ' . $property->getHint() . ' $' . $property->getName();
         }
         $srcStr = implode(",\n" . str_repeat($leftPad, 2), $src);
 
@@ -564,11 +479,19 @@ final class ValueObjectManipulator implements ManipulatorInterface
         );
 
         $src = [];
+        $lastPropertyKey = array_key_last($this->properties);
         foreach ($this->properties as $property) {
             $getter = 'get' . Str::asCamelCase($property->getName());
-            $src[] = '$this->' . $getter . '() === $' . $attr . '->' . $getter .'()';
+
+            if ($property !== $this->properties[$lastPropertyKey]) {
+                $src[] = 'if ($this->' . $getter . '() !== $' . $attr . '->' . $getter .'()) {';
+                $src[] = $leftPad . 'return false;';
+                $src[] = '}';
+            } else {
+                $src[] = 'return $this->' . $getter . '() === $' . $attr . '->' . $getter .'()';
+            }
         }
-        $srcStr = implode(" &&\n" . str_repeat($leftPad, 3), $src);
+        $srcStr = implode("\n" . str_repeat($leftPad, 2), $src);
 
         $this->updateClass(
             self::CLASS_EQUALS_BODY,

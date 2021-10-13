@@ -50,9 +50,8 @@ abstract class <?= $class_name."\n" ?>
 
     /**
      * @param mixed $id
-     * @return <?= $parent_class_name ?>Dto
      */
-    public static function createDto($id = null)
+    public static function createDto($id = null): <?= $parent_class_name ?>Dto
     {
         return new <?= $parent_class_name ?>Dto($id);
     }
@@ -128,9 +127,8 @@ abstract class <?= $class_name."\n" ?>
     /**
      * @internal use EntityTools instead
      * @param int $depth
-     * @return <?= $parent_class_name ?>Dto
      */
-    public function toDto($depth = 0)
+    public function toDto($depth = 0): <?= $parent_class_name ?>Dto
     {
         return self::createDto()
             /*__toDto_body*/;

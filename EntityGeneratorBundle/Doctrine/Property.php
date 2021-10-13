@@ -4,38 +4,31 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine;
 
 class Property implements CodeGeneratorUnitInterface
 {
-    private $name;
-    private $columnName;
-    private $comments;
-    private $defaultValue;
-    private $required;
-    private $fkFqdn;
-    private $visibility;
-    private $isCollection;
-
     public function __construct(
-        string $name,
-        string $columnName,
-        array $comments,
-        $defaultValue,
-        bool $required,
-        string $fkFqdn,
-        string $visibility = 'protected',
-        bool $isCollection = false
+        private string $name,
+        private string $typeHint,
+        private string $columnName,
+        private array $comments,
+        private $defaultValue,
+        private bool $required,
+        private string $fkFqdn,
+        private string $visibility = 'protected',
+        private bool $isCollection = false
     ) {
-        $this->name = $name;
-        $this->columnName = $columnName;
-        $this->comments = $comments;
-        $this->defaultValue = $defaultValue;
-        $this->required = $required;
-        $this->fkFqdn = $fkFqdn;
-        $this->visibility = $visibility;
-        $this->isCollection = $isCollection;
     }
 
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getHint(): string
+    {
+        if ($this->required) {
+            return $this->typeHint;
+        }
+
+        return '?' . $this->typeHint;
     }
 
     public function getColumnName(): string
@@ -75,11 +68,14 @@ class Property implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
-        $response[] = '/**';
-        foreach ($this->comments as $comment) {
-            $response[] = ' * ' . $comment;
+        $response = [];
+        if (count($this->comments) > 0) {
+            $response[] = '/**';
+            foreach ($this->comments as $comment) {
+                $response[] = ' * ' . $comment;
+            }
+            $response[] = ' */';
         }
-        $response[] = ' */';
 
         $attr = $this->visibility . ' $' . $this->name;
         if (!is_null($this->defaultValue)) {

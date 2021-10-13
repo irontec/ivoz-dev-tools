@@ -175,7 +175,7 @@ class AssertionGenerator
     {
         $message = $fieldName . ' provided "%s" is not a valid boolean value.';
         return
-            "Assertion::between(intval($". $fieldName ."), 0, 1, '". $message ."');\n"
+            "Assertion::between((int) $". $fieldName .", 0, 1, '". $message ."');\n"
             // @todo not necesssary anymore
             ."$" . $fieldName . " = (bool) $". $fieldName .";";
     }

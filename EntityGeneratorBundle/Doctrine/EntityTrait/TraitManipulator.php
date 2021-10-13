@@ -118,7 +118,7 @@ final class TraitManipulator implements ManipulatorInterface
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']) . 'Interface';
 
-        if ($typeHint == '\\DateTime') {
+        if ($typeHint == '\\DateTimeInterface') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -139,6 +139,7 @@ final class TraitManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $propertyName,
+            $typeHint,
             $columnName,
             $comments,
             null,
@@ -275,6 +276,7 @@ final class TraitManipulator implements ManipulatorInterface
 
     public function addProperty(
         string $name,
+        string $typeHint,
         string $columnName,
         array $comments = [],
         $defaultValue = null,
@@ -284,6 +286,7 @@ final class TraitManipulator implements ManipulatorInterface
     ) {
         $this->properties[] = new Property(
             $name,
+            $typeHint,
             $columnName,
             $comments,
             $defaultValue,
@@ -324,6 +327,7 @@ final class TraitManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
+            $typeHint,
             $columnName,
             $comments,
             null,
@@ -390,6 +394,7 @@ final class TraitManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
+            $typeHint,
             $columnName,
             $comments,
             null,

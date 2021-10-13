@@ -36,7 +36,7 @@ trait EntityTypeTrait
             case 'datetimetz':
             case 'date':
             case 'time':
-                return '\\'.\DateTime::class;
+                return '\\'.\DateTimeInterface::class;
 
             case 'datetime_immutable':
             case 'datetimetz_immutable':

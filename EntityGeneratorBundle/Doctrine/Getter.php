@@ -43,7 +43,7 @@ class Getter implements CodeGeneratorUnitInterface
         );
         $response[] = '{';
 
-        if ($this->returnType === '\\DateTime') {
+        if ($this->returnType === '\\DateTimeInterface') {
 
             $clone =
                 'clone $this->'
