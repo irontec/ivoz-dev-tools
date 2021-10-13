@@ -86,7 +86,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
 
         $this->updateClass(
             self::CLASS_ATTRIBUTE_PLACEHOLDER,
-            [], //$this->properties,
+            $this->properties,
             $leftPad
         );
 
@@ -432,8 +432,8 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $src = [];
         foreach ($this->properties as $property) {
             $src[] = $property instanceof EmbeddedProperty
-                ? 'private ' . $property->getForeignKeyFqdn() . ' $' . $property->getName()
-                : 'private ' . $property->getHint() . ' $' . $property->getName();
+                ? $property->getForeignKeyFqdn() . ' $' . $property->getName()
+                : $property->getHint() . ' $' . $property->getName();
         }
         $srcStr = implode(",\n" . str_repeat($leftPad, 2), $src);
 
