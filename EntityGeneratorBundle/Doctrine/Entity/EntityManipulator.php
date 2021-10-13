@@ -168,6 +168,7 @@ final class EntityManipulator implements ManipulatorInterface
             $defaultValue = null;
         }
 
+
         $this->addProperty(
             $propertyName,
             $typeHint,
@@ -570,9 +571,15 @@ final class EntityManipulator implements ManipulatorInterface
 
         $src = [];
         foreach ($requiredProperties as $property) {
+
+            $hint = $property->getHint();
+            if ($property->getHint() === '\\' . \DateTimeInterface::class) {
+                $hint .= '|string';
+            }
+
             $src[] = $property instanceof EmbeddedProperty
                 ? $property->getForeignKeyFqdn() . ' $' . $property->getName()
-                : $property->getHint() . ' $' . $property->getName();
+                : $hint . ' $' . $property->getName();
         }
         $srcStr = implode(",\n" . str_repeat($leftPad, 2), $src);
 
