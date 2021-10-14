@@ -36,6 +36,12 @@ class Getter implements CodeGeneratorUnitInterface
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
         $response = [];
+        if ($this->returnType === '\\' . \DateTimeInterface::class) {
+            $response[] = '/**';
+            $response[] = ' * @return \DateTime|\DateTimeImmutable';
+            $response[] = ' */';
+        }
+
         $response[] = sprintf(
             'public function %s()%s',
             $methodName,
