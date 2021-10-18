@@ -26,7 +26,8 @@
         "php": ">=8.0",
         "doctrine/orm": "^2.5",
         "doctrine/doctrine-bundle": "^2.0",
-        "symfony/console": "^5.1"
+        "symfony/console": "^5.1",
+        "symfony/maker-bundle": "^1.33"
     },
     "require-dev": {
     }

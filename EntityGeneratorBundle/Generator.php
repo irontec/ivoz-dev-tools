@@ -2,19 +2,18 @@
 
 namespace IvozDevTools\EntityGeneratorBundle;
 
-use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Bundle\MakerBundle\FileManager;
 use Symfony\Bundle\MakerBundle\Generator as MakerBundleGenerator;
 use Symfony\Bundle\MakerBundle\Str;
+use Symfony\Bundle\MakerBundle\Util\AutoloaderUtil;
 
 class Generator extends MakerBundleGenerator
 {
-    private $fileManager;
-
-    public function __construct(FileManager $fileManager, string $namespacePrefix)
-    {
-        $this->fileManager = $fileManager;
-
+    public function __construct(
+        private FileManager $fileManager,
+        private AutoloaderUtil $autoloaderUtil,
+        string $namespacePrefix
+    ) {
         return parent::__construct(
             $fileManager,
             $namespacePrefix
@@ -27,7 +26,7 @@ class Generator extends MakerBundleGenerator
         array $variables = []
     ): array
     {
-        $targetPath = $this->fileManager->getRelativePathForFutureClass($className);
+        $targetPath = $this->autoloaderUtil->getPathForFutureClass($className);
 
         if (null === $targetPath) {
             throw new \LogicException(sprintf('Could not determine where to locate the new class "%s", maybe try with a full namespace like "\\My\\Full\\Namespace\\%s"', $className, Str::getShortClassName($className)));
@@ -55,7 +54,7 @@ class Generator extends MakerBundleGenerator
 
     private function getClassContentVariables(string $targetPath, string $templateName, array $variables): array
     {
-        $variables['relative_path'] = $this->fileManager->relativizePath($targetPath);
+        $variables['relative_path'] = $targetPath;
 
         $templatePath = $templateName;
         if (!file_exists($templatePath)) {

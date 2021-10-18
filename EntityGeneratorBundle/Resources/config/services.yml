@@ -4,10 +4,16 @@ services:
     autoconfigure: true
     public: true
 
+  Symfony\Bundle\MakerBundle\Util\ComposerAutoloaderFinder:
+    arguments:
+      $rootNamespace: ''
+  Symfony\Bundle\MakerBundle\Util\AutoloaderUtil: ~
+
   IvozDevTools\EntityGeneratorBundle\Generator:
     arguments:
       $fileManager: '@maker.file_manager'
       $namespacePrefix: ''
+      $autoloaderUtil: '@Symfony\Bundle\MakerBundle\Util\AutoloaderUtil'
 
   IvozDevTools\EntityGeneratorBundle\Maker\MakeEntities:
     arguments:
