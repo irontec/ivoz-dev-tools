@@ -20,8 +20,6 @@ services:
       $fileManager: '@maker.file_manager'
       $doctrineHelper: '@maker.doctrine_helper'
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
-      $projectDirectory: '%kernel.project_dir%'
-      $entityClassGenerator: '@maker.entity_class_generator'
 
   IvozDevTools\EntityGeneratorBundle\Command\MakeEntitiesCommand:
     arguments:
@@ -32,3 +30,9 @@ services:
 
   IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand:
     tags: [{ name: 'console.command'}]
+
+  IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata\ClassMetadataFactory: ~
+
+doctrine:
+  orm:
+    class_metadata_factory_name:  IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata\ClassMetadataFactory
