@@ -1,0 +1,6 @@
+parameters:
+    excludePaths:
+        analyse:
+            - *.tpl.php
+            - CommandlogBundle
+            - MigrationsBundle
