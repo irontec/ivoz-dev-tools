@@ -156,34 +156,26 @@ final class EntityRegenerator
             array_keys($classMetadata->associationMappings)
         );
 
-        if ($classReflection) {
-            // exclude traits
-            $traitProperties = [];
+        // exclude traits
+        $traitProperties = [];
 
-            foreach ($classReflection->getTraits() as $trait) {
-                foreach ($trait->getProperties() as $property) {
-                    $traitProperties[] = $property->getName();
-                }
+        foreach ($classReflection->getTraits() as $trait) {
+            foreach ($trait->getProperties() as $property) {
+                $traitProperties[] = $property->getName();
             }
-
-            $targetFields = array_diff($targetFields, $traitProperties);
-
-            // exclude inherited properties
-            $targetFields = array_filter($targetFields, function ($field) use ($classReflection) {
-                return $classReflection->hasProperty($field) &&
-                    $classReflection->getProperty($field)->getDeclaringClass()->getName() == $classReflection->getName();
-            });
         }
+
+        $targetFields = array_diff($targetFields, $traitProperties);
+
+        // exclude inherited properties
+        $targetFields = array_filter($targetFields, function ($field) use ($classReflection) {
+            return $classReflection->hasProperty($field) &&
+                $classReflection->getProperty($field)->getDeclaringClass()->getName() == $classReflection->getName();
+        });
 
         return $targetFields;
     }
 
-    /**
-     * @param $metadata
-     * @param array $operations
-     * @return array
-     * @throws \Exception
-     */
     private function addMethods($manipulator, $classMetadata): void
     {
         $mappedFields = $this->getMappedFieldsInEntity($classMetadata);
@@ -194,7 +186,7 @@ final class EntityRegenerator
                 continue;
             }
 
-            $manipulator->addEntityField($fieldName, $mapping, [], $classMetadata);
+            $manipulator->addEntityField($fieldName, $mapping, $classMetadata);
         }
 
         foreach ($classMetadata->embeddedClasses as $fieldName => $mapping) {
@@ -245,8 +237,10 @@ final class EntityRegenerator
 
             switch ($mapping['type']) {
                 case ClassMetadata::MANY_TO_ONE:
-                    $relation = (new RelationManyToOne())
-                        ->setPropertyName($mapping['fieldName'])
+                    $relation = new RelationManyToOne();
+                    $relation
+                        ->setPropertyName($mapping['fieldName']);
+                    $relation
                         ->setIsNullable($getIsNullable($mapping))
                         ->setTargetClassName($mapping['targetEntity'] . 'Interface')
                         ->setTargetPropertyName($mapping['inversedBy'])
@@ -261,12 +255,15 @@ final class EntityRegenerator
                         break;
                     }
 
-                    $relation = (new RelationOneToOne())
+                    $relation = new RelationOneToOne();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'] . 'Interface')
-                        ->setTargetPropertyName($mapping['isOwningSide'] ? $mapping['inversedBy'] : $mapping['mappedBy'])
+                        ->setTargetPropertyName($mapping['isOwningSide'] === true ? $mapping['inversedBy'] : $mapping['mappedBy']);
+                    $relation
                         ->setIsOwning($mapping['isOwningSide'])
-                        ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true)
+                        ->setMapInverseRelation($mapping['isOwningSide'] === true ? (null !== $mapping['inversedBy']) : true);
+                    $relation
                         ->setIsNullable($getIsNullable($mapping));
 
                     $manipulator->addOneToOneRelation($relation, $classMetadata);

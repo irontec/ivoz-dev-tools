@@ -19,9 +19,9 @@ class Setter implements CodeGeneratorUnitInterface
         string $propertyName,
         ?string $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->propertyName = $propertyName;
@@ -75,9 +75,6 @@ class Setter implements CodeGeneratorUnitInterface
         }
         $response[] = '    $this->' . $this->propertyName . ' = $' . $this->propertyName . ';';
         $response[] = '';
-        if ($this->visibility === 'public') {
-            $response[] = '    /** @var ' . $returnHint . ' $this */';
-        }
         $response[] = '    return $this;';
         $response[] = '}';
 

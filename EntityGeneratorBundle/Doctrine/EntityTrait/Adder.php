@@ -19,9 +19,9 @@ class Adder implements CodeGeneratorUnitInterface
         string $propertyName,
         string $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->propertyName = $propertyName;

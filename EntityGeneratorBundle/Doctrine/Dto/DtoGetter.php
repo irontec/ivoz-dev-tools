@@ -28,6 +28,7 @@ class DtoGetter implements CodeGeneratorUnitInterface
     {
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
+        $returnHint = '';
         if ($this->returnType && strpos($this->returnType, '|')) {
             $returnHint = ': ' . $this->returnType . '|null';
         } elseif ($this->returnType) {

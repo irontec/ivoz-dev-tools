@@ -9,6 +9,7 @@ namespace IvozDevTools\EntityGeneratorBundle\Util;
  */
 class AssertionGenerator
 {
+    /** @param array|array{'fieldName': string, "type": string, "columnName": string, "precision": int, nullable: bool, options: array} $columnOptions */
     public static function get(array $columnOptions, $classMetadata, string $nlLeftPad = ''): string
     {
         if (empty($columnOptions)) {
@@ -16,6 +17,8 @@ class AssertionGenerator
         }
 
         $currentField = (object) $columnOptions;
+        $fieldName = $currentField->fieldName;
+
         $isNullable = isset($currentField->nullable) && $currentField->nullable;
 
         $assertions = [];
@@ -23,7 +26,7 @@ class AssertionGenerator
         if (in_array($currentField->type, ['boolean'])) {
             $assertions = array_merge(
                 $assertions,
-                [AssertionGenerator::boolean($currentField->fieldName)]
+                [AssertionGenerator::boolean($fieldName)]
             );
         }
 
@@ -68,13 +71,13 @@ class AssertionGenerator
 
             $assertions[] = str_replace(
                 ['$var', '$fldName', '$default'],
-                ['$' . $currentField->fieldName, $currentField->fieldName, $defaultValue],
+                ['$' . $fieldName, $fieldName, $defaultValue],
                 $call
             );
         }
 
         if (in_array($currentField->type, ['smallint', 'integer', 'bigint'])) {
-            $integerAssertions = self::getIntegerAssertions($currentField);
+            $integerAssertions = self::getIntegerAssertions($columnOptions);
 
             $assertions = array_merge(
                 $assertions,
@@ -83,7 +86,7 @@ class AssertionGenerator
         }
 
         if (in_array($currentField->type, ['decimal', 'float'])) {
-            $floatAssertions = self::getFloatAssertions($currentField);
+            $floatAssertions = self::getFloatAssertions($columnOptions);
 
             $assertions = array_merge(
                 $assertions,
@@ -92,7 +95,7 @@ class AssertionGenerator
         }
 
         if (in_array($currentField->type, ['string', 'text'])) {
-            $stringAssertions = self::getStringAssertions($currentField);
+            $stringAssertions = self::getStringAssertions($columnOptions);
             $assertions = array_merge(
                 $assertions,
                 $stringAssertions
@@ -111,7 +114,7 @@ class AssertionGenerator
             $entityFqdnSegments = explode('\\', $entityFqdn);
             $interface = end($entityFqdnSegments) . 'Interface';
 
-            $choices = self::getEnumConstants($currentField->fieldName, $acceptedValues, $interface . '::');
+            $choices = self::getEnumConstants($fieldName, $acceptedValues, $interface . '::');
 
             $choicesStr =
                 "[\n" .  str_repeat($nlLeftPad, 2)
@@ -120,7 +123,7 @@ class AssertionGenerator
                 . "]";
 
             $assertions[] = AssertionGenerator::choice(
-                $currentField->fieldName,
+                $fieldName,
                 $choicesStr,
                 $nlLeftPad
             );
@@ -130,7 +133,7 @@ class AssertionGenerator
 
         if ($isNullable && !empty(trim($assertionStr))) {
             $assertionStr = self::nullable(
-                $currentField->fieldName,
+                $fieldName,
                 $assertionStr,
                 $nlLeftPad
             );
@@ -226,8 +229,9 @@ class AssertionGenerator
         return $response;
     }
 
-    private static function getFloatAssertions($currentField)
+    private static function getFloatAssertions(array $columnOptions)
     {
+        $currentField = (object) $columnOptions;
         $assertions = [];
         if (!isset($currentField->options)) {
             $currentField->options = [];
@@ -246,8 +250,9 @@ class AssertionGenerator
         return $assertions;
     }
 
-    private static function getIntegerAssertions($currentField)
+    private static function getIntegerAssertions(array $columnOptions)
     {
+        $currentField = (object) $columnOptions;
         $assertions = [];
         if (!isset($currentField->options)) {
             $currentField->options = [];
@@ -261,8 +266,9 @@ class AssertionGenerator
         return $assertions;
     }
 
-    private static function getStringAssertions($currentField)
+    private static function getStringAssertions(array $columnOptions)
     {
+        $currentField = (object) $columnOptions;
         $assertions = [];
         if (isset($currentField->length)) {
             $assertions[] = AssertionGenerator::maxLength(

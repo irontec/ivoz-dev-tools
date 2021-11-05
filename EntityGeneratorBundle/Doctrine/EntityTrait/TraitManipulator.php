@@ -20,6 +20,7 @@ use PhpParser\NodeVisitor;
 use PhpParser\Parser;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseCollectionRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseRelation;
+use Symfony\Bundle\MakerBundle\Doctrine\BaseSingleRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToMany;
@@ -113,7 +114,7 @@ final class TraitManipulator implements ManipulatorInterface
         return $this->sourceCode;
     }
 
-    public function addEntityField(string $propertyName, array $columnOptions, array $comments = [], $classMetadata)
+    public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = [])
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']) . 'Interface';
@@ -129,7 +130,7 @@ final class TraitManipulator implements ManipulatorInterface
 
         $comments += $this->buildPropertyCommentLines($columnOptions);
         $isCollection = in_array(
-            $property['type'] ?? null,
+            $columnOptions['type'] ?? null,
             [
                 ClassMetadata::ONE_TO_MANY,
                 ClassMetadata::MANY_TO_MANY
@@ -141,10 +142,10 @@ final class TraitManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint,
             $columnName,
+            '',
             $comments,
             null,
             !$nullable,
-            '',
             $isCollection
         );
 
@@ -167,9 +168,9 @@ final class TraitManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint,
             $nullable,
+            $classMetadata,
             $setterComments,
             $columnOptions,
-            $classMetadata
         );
 
         $returnHint = '@return ' . $typeHint;
@@ -213,7 +214,7 @@ final class TraitManipulator implements ManipulatorInterface
     public function addManyToManyRelation(RelationManyToMany $manyToMany, ClassMetadata $classMetadata)
     {
         throw new \Exception('@todo ManyToMany');
-        $this->addCollectionRelation($manyToMany, $classMetadata);
+//        $this->addCollectionRelation($manyToMany, $classMetadata);
     }
 
     public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
@@ -238,18 +239,18 @@ final class TraitManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->methods[] = new Adder(
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
 
@@ -257,9 +258,9 @@ final class TraitManipulator implements ManipulatorInterface
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
 
@@ -267,9 +268,9 @@ final class TraitManipulator implements ManipulatorInterface
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
     }
@@ -278,10 +279,10 @@ final class TraitManipulator implements ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn,
         bool $isCollection = true
     ) {
         $this->properties[] = new Property(
@@ -307,7 +308,7 @@ final class TraitManipulator implements ManipulatorInterface
         return $comments;
     }
 
-    private function addSingularRelation(BaseRelation $relation, $classMetadata)
+    private function addSingularRelation(BaseSingleRelation $relation, $classMetadata)
     {
         $columnName = $classMetadata->getColumnName(
             $relation->getPropertyName()
@@ -329,10 +330,10 @@ final class TraitManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $columnName,
+            $typeHint,
             $comments,
             null,
             true,
-            $typeHint,
             false
         );
 
@@ -341,9 +342,9 @@ final class TraitManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $relation->isNullable(),
+            $classMetadata,
             $comments,
             [],
-            $classMetadata,
             'public'
         );
 
@@ -396,10 +397,10 @@ final class TraitManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $columnName,
+            $relation->getTargetClassName(),
             $comments,
             null,
             true,
-            $relation->getTargetClassName(),
             true
         );
 
@@ -408,9 +409,9 @@ final class TraitManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             false,
-            [],
-            [],
             $classMetadata,
+            [],
+            [],
             'public'
         );
 
@@ -450,6 +451,7 @@ final class TraitManipulator implements ManipulatorInterface
 
     private function getNamespaceNode(): Node\Stmt\Namespace_
     {
+        /** @var null|Node\Stmt\Namespace_ $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Namespace_;
         });
@@ -512,9 +514,6 @@ final class TraitManipulator implements ManipulatorInterface
         );
     }
 
-    /**
-     * @param CodeGeneratorUnitInterface[] $items
-     */
     private function updateClassFromDto(string $leftPad): void
     {
         $src = [];
@@ -629,7 +628,7 @@ TPL;
     {
         $associationProperties = array_filter(
             $classMetadata->associationMappings,
-            function ($property) use ($classMetadata) {
+            function ($property) {
                 return in_array(
                     $property['type'] ?? null,
                     [

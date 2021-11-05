@@ -2,6 +2,7 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\Persistence\Mapping\MappingException as LegacyCommonMappingException;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\MappingException;
@@ -13,7 +14,6 @@ use IvozDevTools\EntityGeneratorBundle\Doctrine\ValueObject\ValueObjectRegenerat
 use IvozDevTools\EntityGeneratorBundle\Generator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTrait\TraitRegenerator;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
-use Symfony\Bundle\MakerBundle\Doctrine\EntityClassGenerator;
 use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Bundle\MakerBundle\FileManager;
 
@@ -23,8 +23,6 @@ use Symfony\Bundle\MakerBundle\FileManager;
 final class Regenerator
 {
     private $doctrineHelper;
-    private $entityClassGenerator;
-    private $overwrite;
 
     private $interfaceRegenerator;
     private $entityRegenerator;
@@ -35,13 +33,9 @@ final class Regenerator
     public function __construct(
         DoctrineHelper $doctrineHelper,
         FileManager $fileManager,
-        Generator $generator,
-        EntityClassGenerator $entityClassGenerator,
-        bool $overwrite
+        Generator $generator
     ) {
         $this->doctrineHelper = $doctrineHelper;
-        $this->entityClassGenerator = $entityClassGenerator;
-        $this->overwrite = $overwrite;
 
         $this->interfaceRegenerator = new InterfaceRegenerator(
             $fileManager,
@@ -56,8 +50,7 @@ final class Regenerator
 
         $this->voRegenerator = new ValueObjectRegenerator(
             $fileManager,
-            $generator,
-            $doctrineHelper
+            $generator
         );
 
         $this->dtoRegenerator = new DtoRegenerator(
@@ -68,13 +61,13 @@ final class Regenerator
 
         $this->traitRegenerator = new TraitRegenerator(
             $fileManager,
-            $generator,
-            $doctrineHelper
+            $generator
         );
     }
 
     public function regenerateEntities(string $classOrNamespace)
     {
+        /** @var ClassMetadataInfo $classMetadata */
         $classMetadata = $this->getMetadata($classOrNamespace);
         $isMappedSuperclass = $classMetadata->isMappedSuperclass;
         $isEmbeddedClass = $classMetadata->isEmbeddedClass;
@@ -95,11 +88,7 @@ final class Regenerator
         }
     }
 
-    /**
-     * @param string $classOrNamespace
-     * @return \Doctrine\Persistence\Mapping\ClassMetadata|ClassMetadata|\Doctrine\Persistence\Mapping\ClassMetadata
-     */
-    private function getMetadata(string $classOrNamespace)
+    private function getMetadata(string $classOrNamespace): ClassMetadata
     {
         try {
             $metadata = $this->doctrineHelper->getMetadata($classOrNamespace);
@@ -116,5 +105,7 @@ final class Regenerator
         } elseif (empty($metadata)) {
             throw new RuntimeCommandException(sprintf('No entities were found in the "%s" namespace.', $classOrNamespace));
         }
+
+        throw new RuntimeCommandException('Unexpected execution point');
     }
 }

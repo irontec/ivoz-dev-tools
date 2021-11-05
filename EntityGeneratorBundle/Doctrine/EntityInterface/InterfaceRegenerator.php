@@ -149,12 +149,6 @@ final class InterfaceRegenerator
         );
     }
 
-    /**
-     * @param $metadata
-     * @param array $operations
-     * @return array
-     * @throws \Exception
-     */
     private function addMethods($manipulator, $classMetadata): void
     {
         foreach ($classMetadata->fieldMappings as $fieldName => $mapping) {
@@ -232,12 +226,7 @@ final class InterfaceRegenerator
 
         $parentInterfaces = array_filter(
             $parentInterfaces,
-            function ($className) use ($currentInterface) {
-
-                if ($className === $currentInterface) {
-                    return false;
-                }
-
+            function ($className) {
                 return stripos($className, 'Ivoz\\') === 0;
             }
         );

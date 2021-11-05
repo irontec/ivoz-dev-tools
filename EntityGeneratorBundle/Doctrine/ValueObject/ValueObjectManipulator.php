@@ -4,7 +4,9 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\ValueObject;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EmbeddedGetter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EmbeddedProperty;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EmbeddedSetter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Getter;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
@@ -17,8 +19,6 @@ use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\Parser;
-use Symfony\Bundle\MakerBundle\Doctrine\BaseRelation;
-use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToMany;
@@ -53,12 +53,9 @@ final class ValueObjectManipulator implements ManipulatorInterface
     /** @var UseStatement[]  */
     private $useStatements = [];
 
-    /** @var DoctrineHelper */
-    private $doctrineHelper;
 
     public function __construct(
-        string $sourceCode,
-        DoctrineHelper $doctrineHelper
+        string $sourceCode
     ) {
         $this->lexer = new Lexer\Emulative([
             'usedAttributes' => [
@@ -70,7 +67,6 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $this->parser = new Parser\Php7($this->lexer);
         $this->sourceCode = $sourceCode;
         $this->ast = $this->parser->parse($sourceCode);
-        $this->doctrineHelper = $doctrineHelper;
     }
 
     public function updateSourceCode()
@@ -118,7 +114,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
         return $this->sourceCode;
     }
 
-    public function addEntityField(string $propertyName, array $columnOptions, array $comments = [], $classMetadata)
+    public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = [])
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
@@ -153,10 +149,10 @@ final class ValueObjectManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint,
             $columnName,
+            '',
             $comments,
             $defaultValue,
             !$nullable,
-            ''
         );
 
         $paramDoc = '@param ' . $typeHint . ' $' . $propertyName;
@@ -174,9 +170,9 @@ final class ValueObjectManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint,
             $nullable,
+            $classMetadata,
             $setterComments,
             $columnOptions,
-            $classMetadata
         );
 
         $returnHint = '@return ' . $typeHint;
@@ -252,18 +248,18 @@ final class ValueObjectManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->methods[] = new Setter(
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
     }
@@ -272,9 +268,9 @@ final class ValueObjectManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->methods[] = new EmbeddedSetter(
@@ -292,10 +288,10 @@ final class ValueObjectManipulator implements ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn
     ) {
         $this->properties[] = new Property(
             $name,
@@ -313,10 +309,10 @@ final class ValueObjectManipulator implements ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn
     ) {
         $this->properties[] = new EmbeddedProperty(
             $name,
@@ -369,6 +365,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
 
     private function getClassNode(): Node\Stmt\Class_
     {
+        /** @var Node\Stmt\Class_|null $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Class_;
         });
@@ -382,6 +379,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
 
     private function getNamespaceNode(): Node\Stmt\Namespace_
     {
+        /** @var Node\Stmt\Namespace_|null $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Namespace_;
         });
@@ -413,20 +411,6 @@ final class ValueObjectManipulator implements ManipulatorInterface
         return $this->getNamespaceNode()->name->toCodeString() === $namespace;
     }
 
-    private function getThisFullClassName(): string
-    {
-        $class = $this->getClassNode();
-        $namespace = $this->getNamespaceNode();
-
-        return
-            $namespace->name->toString()
-            . '\\'
-            . $class->name->toString();
-    }
-
-    /**
-     * @param CodeGeneratorUnitInterface[] $items
-     */
     private function updateClassConstructor(string $leftPad): void
     {
         $src = [];
@@ -465,9 +449,6 @@ final class ValueObjectManipulator implements ManipulatorInterface
         );
     }
 
-    /**
-     * @param CodeGeneratorUnitInterface[] $items
-     */
     private function updateEquals(string $leftPad): void
     {
         $attr = lcfirst($this->getClassNode()->name->toString());

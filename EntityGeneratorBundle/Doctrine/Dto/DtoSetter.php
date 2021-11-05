@@ -19,9 +19,9 @@ class DtoSetter implements CodeGeneratorUnitInterface
         string $propertyName,
         ?string $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->propertyName = $propertyName;
@@ -51,12 +51,11 @@ class DtoSetter implements CodeGeneratorUnitInterface
 
         $response = [];
         $response[] = sprintf(
-            '%s function %s(%s%s%s): %s',
+            '%s function %s(%s%s): %s',
             $this->visibility,
             $methodName,
             $typeHint,
             '$' . $this->propertyName,
-            $nullableStr,
             'static'
         );
 

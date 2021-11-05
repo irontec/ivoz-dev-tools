@@ -8,7 +8,6 @@ use IvozDevTools\EntityGeneratorBundle\Doctrine\Regenerator;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
-use Symfony\Bundle\MakerBundle\Doctrine\EntityClassGenerator;
 use Symfony\Bundle\MakerBundle\Doctrine\EntityRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\ORMDependencyBuilder;
 use Symfony\Bundle\MakerBundle\FileManager;
@@ -29,14 +28,11 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
     private $fileManager;
     private $doctrineHelper;
     private $generator;
-    private $entityClassGenerator;
 
     public function __construct(
         FileManager $fileManager,
         DoctrineHelper $doctrineHelper,
-        string $projectDirectory,
-        Generator $generator = null,
-        EntityClassGenerator $entityClassGenerator = null
+        Generator $generator = null
     ) {
         $this->fileManager = $fileManager;
         $this->doctrineHelper = $doctrineHelper;
@@ -47,13 +43,6 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
             $this->generator = new Generator($fileManager, 'App\\');
         } else {
             $this->generator = $generator;
-        }
-
-        if (null === $entityClassGenerator) {
-            @trigger_error(sprintf('Passing a "%s" instance as 5th argument is mandatory since version 1.15.1', EntityClassGenerator::class), E_USER_DEPRECATED);
-            $this->entityClassGenerator = new EntityClassGenerator($generator, $this->doctrineHelper);
-        } else {
-            $this->entityClassGenerator = $entityClassGenerator;
         }
     }
 
@@ -109,7 +98,7 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
 
             ksort($targetEntities);
             foreach ($targetEntities as $name => $metadata) {
-                $this->regenerateEntities($name, true, $this->generator);
+                $this->regenerateEntities($name, $this->generator);
             }
         }
 
@@ -140,6 +129,8 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
 
             return $entityNamespaces[$targetNamespace];
         }
+
+        return null;
     }
 
     private function askForNextField(ConsoleStyle $io, array $fields, string $entityClass, bool $isFirstField)
@@ -191,6 +182,7 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
         $type = null;
         $types = Type::getTypesMap();
         // remove deprecated json_array
+        /** @phpstan-ignore-next-line  */
         unset($types[Type::JSON_ARRAY]);
 
         $allValidTypes = array_merge(
@@ -225,13 +217,13 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
         $data = ['fieldName' => $fieldName, 'type' => $type];
         if ('string' === $type) {
             // default to 255, avoid the question
-            $data['length'] = $io->ask('Field length', 255, [Validator::class, 'validateLength']);
+            $data['length'] = $io->ask('Field length', '255', [Validator::class, 'validateLength']);
         } elseif ('decimal' === $type) {
             // 10 is the default value given in \Doctrine\DBAL\Schema\Column::$_precision
-            $data['precision'] = $io->ask('Precision (total number of digits stored: 100.00 would be 5)', 10, [Validator::class, 'validatePrecision']);
+            $data['precision'] = $io->ask('Precision (total number of digits stored: 100.00 would be 5)', '10', [Validator::class, 'validatePrecision']);
 
             // 0 is the default value given in \Doctrine\DBAL\Schema\Column::$_scale
-            $data['scale'] = $io->ask('Scale (number of decimals to store: 100.00 would be 2)', 0, [Validator::class, 'validateScale']);
+            $data['scale'] = $io->ask('Scale (number of decimals to store: 100.00 would be 2)', '0', [Validator::class, 'validateScale']);
         }
 
         if ($io->confirm('Can this field be null in the database (nullable)', false)) {
@@ -627,17 +619,18 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
         return $this->fileManager->isPathInVendor($path);
     }
 
+    /**
+     * @param string $classOrNamespace
+     * @param \IvozDevTools\EntityGeneratorBundle\Generator $generator
+     */
     private function regenerateEntities(
         string $classOrNamespace,
-        bool $overwrite,
         Generator $generator
     ) {
         $regenerator = new Regenerator(
             $this->doctrineHelper,
             $this->fileManager,
-            $generator,
-            $this->entityClassGenerator,
-            $overwrite
+            $generator
         );
 
         $regenerator->regenerateEntities(

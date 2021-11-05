@@ -10,11 +10,11 @@ use Symfony\Bundle\MakerBundle\Util\AutoloaderUtil;
 class Generator extends MakerBundleGenerator
 {
     public function __construct(
-        private FileManager $fileManager,
+        FileManager $fileManager,
         private AutoloaderUtil $autoloaderUtil,
         string $namespacePrefix
     ) {
-        return parent::__construct(
+        parent::__construct(
             $fileManager,
             $namespacePrefix
         );

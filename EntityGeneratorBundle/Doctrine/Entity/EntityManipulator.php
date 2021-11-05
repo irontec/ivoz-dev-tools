@@ -16,7 +16,7 @@ use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\Parser;
-use Symfony\Bundle\MakerBundle\Doctrine\BaseRelation;
+use Symfony\Bundle\MakerBundle\Doctrine\BaseSingleRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
@@ -127,7 +127,7 @@ final class EntityManipulator implements ManipulatorInterface
         return $this->sourceCode;
     }
 
-    public function addEntityField(string $propertyName, array $columnOptions, array $comments = [], $classMetadata)
+    public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = [])
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
@@ -173,10 +173,10 @@ final class EntityManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint,
             $columnName,
+            '',
             $comments,
             $defaultValue,
             !$nullable,
-            ''
         );
 
         // don't generate setters for id fields
@@ -191,9 +191,9 @@ final class EntityManipulator implements ManipulatorInterface
                 $propertyName,
                 $typeHint,
                 $nullable,
+                $classMetadata,
                 [],
                 $columnOptions,
-                $classMetadata
             );
         }
 
@@ -223,9 +223,9 @@ final class EntityManipulator implements ManipulatorInterface
         $comments = [
             '@var ' . $typeHint . ' | null'
         ];
-        $this->addEmbeddedProperty($propertyName, $typeHint, $propertyName, $comments, null, true, $typeHint);
+        $this->addEmbeddedProperty($propertyName, $typeHint, $propertyName, $typeHint, $comments, null, true);
         $this->addEmbeddedGetter($propertyName, $typeHint, false);
-        $this->addEmbeddedSetter($propertyName, $typeHint, false, [], [], $classMetadata);
+        $this->addEmbeddedSetter($propertyName, $typeHint, false, $classMetadata);
     }
 
     public function addManyToOneRelation(RelationManyToOne $manyToOne, ClassMetadata $classMetadata)
@@ -279,18 +279,18 @@ final class EntityManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->methods[] = new Setter(
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
     }
@@ -299,18 +299,18 @@ final class EntityManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     ) {
         $this->methods[] = new EmbeddedSetter(
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
     }
@@ -319,10 +319,10 @@ final class EntityManipulator implements ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn,
         $isCollection = true
     ) {
         $this->properties[] = new Property(
@@ -340,10 +340,10 @@ final class EntityManipulator implements ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn
     ) {
         $this->properties[] = new EmbeddedProperty(
             $name,
@@ -377,7 +377,7 @@ final class EntityManipulator implements ManipulatorInterface
         return $comments;
     }
 
-    private function addSingularRelation(BaseRelation $relation, $classMetadata)
+    private function addSingularRelation(BaseSingleRelation $relation, $classMetadata)
     {
         $columnName = $classMetadata->getColumnName(
             $relation->getPropertyName()
@@ -412,10 +412,10 @@ final class EntityManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $columnName,
+            $relation->getTargetClassName(),
             $comments,
             null,
             !$relation->isNullable(),
-            $relation->getTargetClassName(),
             false
         );
 
@@ -436,9 +436,9 @@ final class EntityManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $nullableSetter,
+            $classMetadata,
             $setterComments,
             [],
-            $classMetadata,
             $setterVisibility
         );
 
@@ -497,6 +497,7 @@ final class EntityManipulator implements ManipulatorInterface
 
     private function getClassNode(): Node\Stmt\Class_
     {
+        /** @var null|Node\Stmt\Class_ $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Class_;
         });
@@ -510,6 +511,7 @@ final class EntityManipulator implements ManipulatorInterface
 
     private function getNamespaceNode(): Node\Stmt\Namespace_
     {
+        /** @var null|Node\Stmt\Namespace_ $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Namespace_;
         });
@@ -552,9 +554,6 @@ final class EntityManipulator implements ManipulatorInterface
             . $class->name->toString();
     }
 
-    /**
-     * @param CodeGeneratorUnitInterface[] $items
-     */
     private function updateClassConstructor(string $leftPad): void
     {
         $requiredProperties = array_filter(
@@ -650,6 +649,7 @@ final class EntityManipulator implements ManipulatorInterface
                     . '\\'
                     . $property->getForeignKeyFqdn();
 
+                /** @var ClassMetadata $embeddedMetadata */
                 $embeddedMetadata = $this->doctrineHelper->getMetadata(
                     $embeddedFqdn
                 );
@@ -728,6 +728,7 @@ final class EntityManipulator implements ManipulatorInterface
                     . '\\'
                     . $property->getForeignKeyFqdn();
 
+                /** @var ClassMetadata $embeddedMetadata */
                 $embeddedMetadata = $this->doctrineHelper->getMetadata(
                     $embeddedFqdn
                 );
@@ -841,6 +842,7 @@ final class EntityManipulator implements ManipulatorInterface
                 . '\\'
                 . $property->getForeignKeyFqdn();
 
+            /** @var ClassMetadata $embeddedMetadata */
             $embeddedMetadata = $this->doctrineHelper->getMetadata(
                 $embeddedFqdn
             );

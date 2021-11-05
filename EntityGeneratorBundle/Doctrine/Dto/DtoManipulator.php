@@ -10,14 +10,13 @@ use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Property;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\StringNode;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\UseStatement;
-use PhpParser\Builder;
 use PhpParser\Lexer;
 use PhpParser\Node;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\Parser;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseCollectionRelation;
-use Symfony\Bundle\MakerBundle\Doctrine\BaseRelation;
+use Symfony\Bundle\MakerBundle\Doctrine\BaseSingleRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToMany;
@@ -112,8 +111,8 @@ final class DtoManipulator implements ManipulatorInterface
     public function addEntityField(
         string $propertyName,
         array $columnOptions,
-        array $comments = [],
         $classMetadata,
+        array $comments = [],
         $embedded = false
     ) {
         $fieldName = $columnOptions['fieldName'];
@@ -146,10 +145,10 @@ final class DtoManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint ?? '',
             $fieldName,
+            '',
             $comments,
             $defaultValue,
             true,
-            '',
             $embedded
         );
 
@@ -163,9 +162,9 @@ final class DtoManipulator implements ManipulatorInterface
             $propertyName,
             $typeHint,
             true,
+            $classMetadata,
             $setterComments,
             $columnOptions,
-            $classMetadata
         );
 
         $returnHint = '@return ' . $typeHint . ' | null';
@@ -212,12 +211,10 @@ final class DtoManipulator implements ManipulatorInterface
         $this->addUseStatementIfNecessary($interfaceName);
 
         $this->getClassNode()->implements[] = new Node\Name(Str::getShortClassName($interfaceName));
-        $this->updateSourceCodeFromNewStmts();
     }
 
     public function addAccessorMethod(string $propertyName, string $methodName, $returnType, bool $isReturnTypeNullable, array $commentLines = [], $typeCast = null)
     {
-        $this->addCustomGetter($propertyName, $methodName, $returnType, $isReturnTypeNullable, $commentLines, $typeCast);
     }
 
     public function addGetter(string $propertyName, $returnType, bool $isReturnTypeNullable, array $commentLines = [])
@@ -246,18 +243,18 @@ final class DtoManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'public'
     ) {
         $this->methods[] = new DtoSetter(
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
     }
@@ -266,18 +263,18 @@ final class DtoManipulator implements ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'public'
     ) {
         $this->methods[] = new FkSetter(
             $propertyName,
             $type,
             $isNullable,
+            $classMetadata,
             $commentLines,
             $columnOptions,
-            $classMetadata,
             $visibility
         );
     }
@@ -286,10 +283,10 @@ final class DtoManipulator implements ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn,
         bool $embedded = false
     ) {
 
@@ -320,41 +317,6 @@ final class DtoManipulator implements ManipulatorInterface
         );
     }
 
-    private function addCustomGetter(string $propertyName, string $methodName, $returnType, bool $isReturnTypeNullable, array $commentLines = [], $typeCast = null)
-    {
-        $propertyFetch = new Node\Expr\PropertyFetch(new Node\Expr\Variable('this'), $propertyName);
-
-        if (null !== $typeCast) {
-            switch ($typeCast) {
-                case 'string':
-                    $propertyFetch = new Node\Expr\Cast\String_($propertyFetch);
-                    break;
-                default:
-                    // implement other cases if/when the library needs them
-                    throw new \Exception('Not implemented');
-            }
-        }
-
-        $getterNodeBuilder = (new Builder\Method($methodName))
-            ->makePublic()
-            ->addStmt(
-                new Node\Stmt\Return_($propertyFetch)
-            )
-        ;
-
-        if (null !== $returnType) {
-            $getterNodeBuilder->setReturnType(
-                $isReturnTypeNullable ? new Node\NullableType($returnType) : $returnType
-            );
-        }
-
-        if ($commentLines) {
-            $getterNodeBuilder->setDocComment($this->createDocBlock($commentLines));
-        }
-
-        $this->addMethod($getterNodeBuilder->getNode());
-    }
-
     private function buildPropertyCommentLines(array $options): array
     {
         $comments = [];
@@ -374,7 +336,7 @@ final class DtoManipulator implements ManipulatorInterface
         return $comments;
     }
 
-    private function addSingularRelation(BaseRelation $relation, $classMetadata)
+    private function addSingularRelation(BaseSingleRelation $relation, $classMetadata)
     {
         $propertyName = $relation->getPropertyName();
         $columnName = $classMetadata->associationMappings[$propertyName]['joinColumns'][0]['name'] ?? $propertyName;
@@ -395,10 +357,10 @@ final class DtoManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $columnName,
+            $relation->getTargetClassName(),
             $comments,
             null,
             true,
-            $relation->getTargetClassName()
         );
 
         // Setter
@@ -414,9 +376,9 @@ final class DtoManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             true,
+            $classMetadata,
             $setterComments,
             [],
-            $classMetadata,
             'public'
         );
 
@@ -441,10 +403,7 @@ final class DtoManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             true,
-            [],
-            [],
             $classMetadata,
-            'public'
         );
 
         $this->addIdGetter(
@@ -477,10 +436,10 @@ final class DtoManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             $typeHint,
             $columnName,
+            $relation->getTargetClassName(),
             $comments,
             null,
             true,
-            $relation->getTargetClassName()
         );
 
         // Setter
@@ -494,9 +453,9 @@ final class DtoManipulator implements ManipulatorInterface
             $relation->getPropertyName(),
             'array',
             true,
+            $classMetadata,
             $setterComments,
             [],
-            $classMetadata,
             'public'
         );
 
@@ -534,6 +493,7 @@ final class DtoManipulator implements ManipulatorInterface
 
     private function getClassNode(): Node\Stmt\Class_
     {
+        /** @var null|Node\Stmt\Class_ $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Class_;
         });
@@ -547,6 +507,7 @@ final class DtoManipulator implements ManipulatorInterface
 
     private function getNamespaceNode(): Node\Stmt\Namespace_
     {
+        /** @var null|Node\Stmt\Namespace_ $node */
         $node = $this->findFirstNode(function ($node) {
             return $node instanceof Node\Stmt\Namespace_;
         });
@@ -589,9 +550,6 @@ final class DtoManipulator implements ManipulatorInterface
             . $class->name->toString();
     }
 
-    /**
-     * @param CodeGeneratorUnitInterface[] $items
-     */
     private function updateToArray(string $leftPad): void
     {
         $src = [];
@@ -666,9 +624,6 @@ final class DtoManipulator implements ManipulatorInterface
         return join("\n" . str_repeat($leftPad, 3), $src);
     }
 
-    /**
-     * @param CodeGeneratorUnitInterface[] $items
-     */
     private function updatePropertyMap(string $leftPad): void
     {
         $src = [];

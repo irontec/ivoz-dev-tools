@@ -17,7 +17,7 @@ interface ManipulatorInterface
 
     public function getSourceCode(): string;
 
-    public function addEntityField(string $propertyName, array $columnOptions, array $comments = [], $classMetadata);
+    public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = []);
 
     public function addEmbeddedEntity(string $propertyName, string $className);
 
@@ -39,9 +39,9 @@ interface ManipulatorInterface
         string $propertyName,
         $type,
         bool $isNullable,
+        $classMetadata,
         array $commentLines = [],
         array $columnOptions = [],
-        $classMetadata,
         string $visibility = 'protected'
     );
 
@@ -54,10 +54,10 @@ interface ManipulatorInterface
         string $name,
         string $typeHint,
         string $columnName,
+        string $fkFqdn,
         array $comments = [],
         $defaultValue = null,
         bool $required = false,
-        string $fkFqdn
     );
 
     public function addConstant(

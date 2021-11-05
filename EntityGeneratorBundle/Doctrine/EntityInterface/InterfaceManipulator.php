@@ -22,8 +22,6 @@ final class InterfaceManipulator implements ManipulatorInterface
     const INTERFACE_BODY_PLACEHOLDER = '/*__interface_body*/';
     const INTERFACE_EXTENDS_PLACEHOLDER = '/*__interface_extends*/';
 
-    private $lexer;
-
     private $sourceCode;
 
     /** @var CodeGeneratorUnitInterface[]  */
@@ -39,13 +37,6 @@ final class InterfaceManipulator implements ManipulatorInterface
 
     public function __construct(string $sourceCode)
     {
-        $this->lexer = new Lexer\Emulative([
-            'usedAttributes' => [
-                'comments',
-                'startLine', 'endLine',
-                'startTokenPos', 'endTokenPos',
-            ],
-        ]);
         $this->sourceCode = $sourceCode;
     }
 
@@ -123,7 +114,7 @@ final class InterfaceManipulator implements ManipulatorInterface
         }
 
         $this->methods[] = new Method(
-            $static,
+            $method->isStatic(),
             $method->getName(),
             $methodParameterArray,
             $returnHint,
@@ -262,7 +253,7 @@ final class InterfaceManipulator implements ManipulatorInterface
         );
     }
 
-    public function addEntityField(string $propertyName, array $columnOptions, array $comments = [], $classMetadata)
+    public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = [])
     {
     }
 
@@ -294,11 +285,11 @@ final class InterfaceManipulator implements ManipulatorInterface
     {
     }
 
-    public function addSetter(string $propertyName, $type, bool $isNullable, array $commentLines = [], array $columnOptions = [], $classMetadata, string $visibility = 'protected')
+    public function addSetter(string $propertyName, $type, bool $isNullable, $classMetadata, array $commentLines = [], array $columnOptions = [], string $visibility = 'protected')
     {
     }
 
-    public function addProperty(string $name, string $typeHint, string $columnName, array $comments = [], $defaultValue = null, bool $required = false, string $fkFqdn)
+    public function addProperty(string $name, string $typeHint, string $columnName, string $fkFqdn, array $comments = [], $defaultValue = null, bool $required = false)
     {
     }
 }

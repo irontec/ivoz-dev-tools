@@ -174,12 +174,6 @@ final class DtoRegenerator
         return $targetFields;
     }
 
-    /**
-     * @param $metadata
-     * @param array $operations
-     * @return array
-     * @throws \Exception
-     */
     private function addMethods($manipulator, $classMetadata/*, array $operations*/): void
     {
         $mappedFields = $this->getMappedFieldsInEntity($classMetadata);
@@ -194,7 +188,7 @@ final class DtoRegenerator
                 continue;
             }
 
-            $manipulator->addEntityField($fieldName, $mapping, [], $classMetadata);
+            $manipulator->addEntityField($fieldName, $mapping, $classMetadata);
         }
 
         foreach ($classMetadata->embeddedClasses as $fieldName => $mapping) {
@@ -204,7 +198,7 @@ final class DtoRegenerator
 
             foreach ($embeddedMetadata->fieldMappings as $subPropertyName => $subMapping) {
                 $subProperty = $fieldName . Str::asCamelCase($subPropertyName);
-                $manipulator->addEntityField($subProperty, $subMapping, [], $classMetadata, true);
+                $manipulator->addEntityField($subProperty, $subMapping, $classMetadata, [], true);
             }
         }
 
@@ -215,8 +209,10 @@ final class DtoRegenerator
 
             switch ($mapping['type']) {
                 case ClassMetadata::MANY_TO_ONE:
-                    $relation = (new RelationManyToOne())
-                        ->setPropertyName($mapping['fieldName'])
+                    $relation = new RelationManyToOne();
+                    $relation
+                        ->setPropertyName($mapping['fieldName']);
+                    $relation
                         ->setIsNullable(true)
                         ->setTargetClassName($mapping['targetEntity'] . 'Dto')
                         ->setTargetPropertyName($mapping['inversedBy'])
@@ -226,20 +222,24 @@ final class DtoRegenerator
 
                     break;
                 case ClassMetadata::ONE_TO_MANY:
-                    $relation = (new RelationOneToMany())
+                    $relation = new RelationOneToMany();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'] . 'Dto')
-                        ->setTargetPropertyName($mapping['mappedBy'])
+                        ->setTargetPropertyName($mapping['mappedBy']);
+                    $relation
                         ->setOrphanRemoval($mapping['orphanRemoval']);
 
                     $manipulator->addOneToManyRelation($relation, $classMetadata);
 
                     break;
                 case ClassMetadata::MANY_TO_MANY:
-                    $relation = (new RelationManyToMany())
+                    $relation = new RelationManyToMany();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'] . 'Dto')
-                        ->setTargetPropertyName($mapping['mappedBy'])
+                        ->setTargetPropertyName($mapping['mappedBy']);
+                    $relation
                         ->setIsOwning($mapping['isOwningSide'])
                         ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true);
 
@@ -247,12 +247,15 @@ final class DtoRegenerator
 
                     break;
                 case ClassMetadata::ONE_TO_ONE:
-                    $relation = (new RelationOneToOne())
+                    $relation = new RelationOneToOne();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'] . 'Dto')
-                        ->setTargetPropertyName($mapping['isOwningSide'] ? $mapping['inversedBy'] : $mapping['mappedBy'])
+                        ->setTargetPropertyName($mapping['isOwningSide'] ? $mapping['inversedBy'] : $mapping['mappedBy']);
+                    $relation
                         ->setIsOwning($mapping['isOwningSide'])
-                        ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true)
+                        ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true);
+                    $relation
                         ->setIsNullable(true);
 
                     $manipulator->addOneToOneRelation($relation, $classMetadata);

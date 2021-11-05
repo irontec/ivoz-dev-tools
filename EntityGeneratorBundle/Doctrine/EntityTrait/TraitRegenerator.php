@@ -134,12 +134,6 @@ final class TraitRegenerator
         return $targetFields;
     }
 
-    /**
-     * @param $metadata
-     * @param array $operations
-     * @return array
-     * @throws \Exception
-     */
     private function addMethods($manipulator, ClassMetadata $classMetadata): void
     {
         $mappedFields = $this->getMappedFieldsInEntity($classMetadata);
@@ -150,7 +144,7 @@ final class TraitRegenerator
                 continue;
             }
 
-            $manipulator->addEntityField($fieldName, $mapping, [], $classMetadata);
+            $manipulator->addEntityField($fieldName, $mapping, $classMetadata);
         }
 
         foreach ($classMetadata->associationMappings as $fieldName => $mapping) {
@@ -165,36 +159,43 @@ final class TraitRegenerator
                         break;
                     }
 
-                    $relation = (new RelationOneToOne())
+                    $relation = new RelationOneToOne();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'])
                         ->setTargetPropertyName(
                             $mapping['mappedBy']
-                        )
+                        );
+                    $relation
                         ->setIsOwning(false)
                         ->setMapInverseRelation(
                             true
-                        )
+                        );
+                    $relation
                         ->setIsNullable(false);
 
                     $manipulator->addOneToOneRelation($relation, $classMetadata);
 
                     break;
                 case ClassMetadata::ONE_TO_MANY:
-                    $relation = (new RelationOneToMany())
+                    $relation = new RelationOneToMany();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'])
-                        ->setTargetPropertyName($mapping['mappedBy'])
+                        ->setTargetPropertyName($mapping['mappedBy']);
+                    $relation
                         ->setOrphanRemoval($mapping['orphanRemoval']);
 
                     $manipulator->addOneToManyRelation($relation, $classMetadata);
 
                     break;
                 case ClassMetadata::MANY_TO_MANY:
-                    $relation = (new RelationManyToMany())
+                    $relation = new RelationManyToMany();
+                    $relation
                         ->setPropertyName($mapping['fieldName'])
                         ->setTargetClassName($mapping['targetEntity'])
-                        ->setTargetPropertyName($mapping['mappedBy'])
+                        ->setTargetPropertyName($mapping['mappedBy']);
+                    $relation
                         ->setIsOwning($mapping['isOwningSide'])
                         ->setMapInverseRelation($mapping['isOwningSide'] ? (null !== $mapping['inversedBy']) : true);
 
