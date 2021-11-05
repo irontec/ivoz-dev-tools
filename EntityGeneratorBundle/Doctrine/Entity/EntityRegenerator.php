@@ -169,6 +169,11 @@ final class EntityRegenerator
 
         // exclude inherited properties
         $targetFields = array_filter($targetFields, function ($field) use ($classReflection) {
+
+            if (!$classReflection->getParentClass()) {
+                return true;
+            }
+
             return $classReflection->hasProperty($field) &&
                 $classReflection->getProperty($field)->getDeclaringClass()->getName() == $classReflection->getName();
         });
