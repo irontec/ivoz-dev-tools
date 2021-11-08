@@ -20,15 +20,7 @@ class AssertionGenerator
         $fieldName = $currentField->fieldName;
 
         $isNullable = isset($currentField->nullable) && $currentField->nullable;
-
         $assertions = [];
-
-        if (in_array($currentField->type, ['boolean'])) {
-            $assertions = array_merge(
-                $assertions,
-                [AssertionGenerator::boolean($fieldName)]
-            );
-        }
 
         if (in_array($currentField->type, ['datetime'])) {
 
@@ -172,15 +164,6 @@ class AssertionGenerator
                 "\n" . $nlLeftPad,
                 $text
             );
-    }
-
-    public static function boolean($fieldName): string
-    {
-        $message = $fieldName . ' provided "%s" is not a valid boolean value.';
-        return
-            "Assertion::between((int) $". $fieldName .", 0, 1, '". $message ."');\n"
-            // @todo not necesssary anymore
-            ."$" . $fieldName . " = (bool) $". $fieldName .";";
     }
 
     public static function integer($fieldName): string
