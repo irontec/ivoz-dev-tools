@@ -11,9 +11,8 @@ class <?= $class_name ?> extends <?= $class_name ?>Abstract implements <?= $clas
 
     /**
      * @codeCoverageIgnore
-     * @return array
      */
-    public function getChangeSet()
+    public function getChangeSet(): array
     {
         return parent::getChangeSet();
     }
@@ -21,9 +20,8 @@ class <?= $class_name ?> extends <?= $class_name ?>Abstract implements <?= $clas
     /**
      * Get id
      * @codeCoverageIgnore
-     * @return integer
      */
-    public function getId()/*: ?int*/
+    public function getId(): int|string
     {
         return $this->id;
     }
