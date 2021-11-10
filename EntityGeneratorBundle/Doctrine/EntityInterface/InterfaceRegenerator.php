@@ -174,12 +174,14 @@ final class InterfaceRegenerator
             }
         }
 
+        $entityInterface = 'Ivoz\\Core\\Domain\\Model\\EntityInterface';
         $entityInterfaceMethods = get_class_methods(
-            'Ivoz\\Core\\Domain\\Model\\EntityInterface'
+            $entityInterface
         );
 
         $className = str_replace('Interface', '', $classMetadata->getName());
         $reflectionClass = new \ReflectionClass($className);
+        $reflectionClassInterface = new \ReflectionClass($entityInterface);
         $publicMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
 
         foreach ($publicMethods as $publicMethod) {
@@ -189,7 +191,14 @@ final class InterfaceRegenerator
 
             $methodName = $publicMethod->getName();
             if (in_array($methodName, $entityInterfaceMethods)) {
-                continue;
+
+                $interfaceMethod = $reflectionClassInterface->getMethod($methodName);
+                $interfaceReturnType = (string) $interfaceMethod->getReturnType();
+                $methodReturnType = (string) $publicMethod->getReturnType();
+
+                if ($interfaceReturnType === $methodReturnType) {
+                    continue;
+                }
             }
 
             $manipulator->addMethod(

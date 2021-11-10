@@ -60,6 +60,7 @@ final class InterfaceManipulator implements ManipulatorInterface
                 continue;
             }
 
+            $type = '';
             if ($parameterClass) {
                 $type = $this->addUseStatementIfNecessary(
                     (string) $parameterClass->getName(),
@@ -67,10 +68,9 @@ final class InterfaceManipulator implements ManipulatorInterface
                 );
                 $str = $type . ' ';
 
-                if ($methodParameter->isOptional()) {
+                if ($methodParameter->isOptional() || str_contains((string) $methodParameter->getType(), '?')) {
                     $str = '?' . $type . ' ';
                 }
-
             } elseif ($methodParameter->isArray()) {
                 $str = 'array ';
             } elseif ($methodParameter->hasType()) {
@@ -80,7 +80,13 @@ final class InterfaceManipulator implements ManipulatorInterface
 
             $str .= '$' . $methodParameter->getName();
             if ($methodParameter->isOptional()  && !is_null($methodParameter->getDefaultValue())) {
-                $str .= " = '" . $methodParameter->getDefaultValue() . "'";
+
+                $numericType = $methodParameter->hasType() && in_array($type, ['int', 'float'], true);
+                $defaultValue = $numericType
+                    ? $methodParameter->getDefaultValue()
+                    : "'" . $methodParameter->getDefaultValue() . "'";
+                $str .= " = " . $defaultValue;
+
             } elseif ($methodParameter->isOptional()) {
                 $str .= " = null";
             }

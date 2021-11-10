@@ -29,40 +29,34 @@ abstract class <?= $class_name."\n" ?>
         /*__construct_body*/
     }
 
-    abstract public function getId();
+    abstract public function getId(): null|string|int;
 
-    public function __toString()
+    public function __toString(): string
     {
         return sprintf(
             "%s#%s",
             "<?= $parent_class_name ?>",
-            $this->getId()
+            (string) $this->getId()
         );
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
-    protected function sanitizeValues()
+    protected function sanitizeValues(): void
     {
     }
 
-    /**
-     * @param mixed $id
-     */
-    public static function createDto($id = null): <?= $parent_class_name ?>Dto
+    public static function createDto(string|int|null $id = null): <?= $parent_class_name ?>Dto
     {
         return new <?= $parent_class_name ?>Dto($id);
     }
 
     /**
      * @internal use EntityTools instead
-     * @param <?= $parent_class_name ?>Interface|null $entity
-     * @param int $depth
-     * @return <?= $parent_class_name ?>Dto|null
+     * @param null|<?= $parent_class_name ?>Interface $entity
      */
-    public static function entityToDto(EntityInterface $entity = null, $depth = 0)
+    public static function entityToDto(?EntityInterface $entity, int $depth = 0): ?<?= $parent_class_name ?>Dto
     {
         if (!$entity) {
             return null;
@@ -78,7 +72,6 @@ abstract class <?= $class_name."\n" ?>
             return static::createDto($entity->getId());
         }
 
-        /** @var <?= $parent_class_name ?>Dto $dto */
         $dto = $entity->toDto($depth - 1);
 
         return $dto;
@@ -88,12 +81,11 @@ abstract class <?= $class_name."\n" ?>
      * Factory method
      * @internal use EntityTools instead
      * @param <?= $parent_class_name ?>Dto $dto
-     * @return self
      */
     public static function fromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ) {
+    ): static {
         Assertion::isInstanceOf($dto, <?= $parent_class_name ?>Dto::class);
         /*__fromDto_embedded_constructor*/
         $self = new static(
@@ -110,12 +102,11 @@ abstract class <?= $class_name."\n" ?>
     /**
      * @internal use EntityTools instead
      * @param <?= $parent_class_name ?>Dto $dto
-     * @return self
      */
     public function updateFromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ) {
+    ): static {
         Assertion::isInstanceOf($dto, <?= $parent_class_name ?>Dto::class);
         /*__fromDto_embedded_constructor*/
         $this
@@ -126,18 +117,14 @@ abstract class <?= $class_name."\n" ?>
 
     /**
      * @internal use EntityTools instead
-     * @param int $depth
      */
-    public function toDto($depth = 0): <?= $parent_class_name ?>Dto
+    public function toDto(int $depth = 0): <?= $parent_class_name ?>Dto
     {
         return self::createDto()
             /*__toDto_body*/;
     }
 
-    /**
-     * @return array
-     */
-    protected function __toArray()
+    protected function __toArray(): array
     {
         return [
             /*__toArray_body*/

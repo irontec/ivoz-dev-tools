@@ -23,10 +23,7 @@ final class <?= $class_name."\n" ?>
         /*__construct_body*/
     }
 
-    /**
-     * Equals
-     */
-    public function equals(/*__equals_attribute*/)
+    public function equals(/*__equals_attribute*/): bool
     {
         /*__equals_body*/;
     }
