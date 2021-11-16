@@ -116,16 +116,19 @@ final class DtoManipulator implements ManipulatorInterface
         $embedded = false
     ) {
         $fieldName = $columnOptions['fieldName'];
-        $typeHint = !in_array($fieldName, $classMetadata->identifier)
-            ? $this->getEntityTypeHint($columnOptions['type'])
-            : null;
+        $isPk = in_array($fieldName, $classMetadata->identifier);
+        $typeHint = $this->getEntityTypeHint($columnOptions['type']);
+
         $nullable = $columnOptions['nullable'] ?? false;
 
-        if ($typeHint === '\\DateTimeInterface') {
-            $typeHint .= '|string';
+        if (in_array($typeHint, ['\\DateTime'], true)) {
+            $typeHint = '\DateTimeInterface|string';
         }
 
-        $comments += $this->buildPropertyCommentLines($columnOptions);
+        $comments = array_merge(
+            $comments,
+            $this->buildPropertyCommentLines($columnOptions)
+        );
         $defaultValue = $columnOptions['options']['default'] ?? null;
 
         if (!is_null($defaultValue)) {
@@ -149,13 +152,14 @@ final class DtoManipulator implements ManipulatorInterface
             '',
             $comments,
             $defaultValue,
-            !$nullable,
+            false,
             $embedded
         );
 
-        $paramDoc = '@param ' . $typeHint . ' $' . $propertyName;
         if ($nullable) {
-            $paramDoc .= ' | null';
+            $paramDoc = '@param ' . $typeHint . '|null $' . $propertyName;
+        } else {
+            $paramDoc = '@param ' . $typeHint . ' $' . $propertyName;
         }
 
         $setterComments = [
@@ -164,7 +168,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addSetter(
             $propertyName,
-            $typeHint,
+            $isPk ? null : $typeHint,
             $nullable,
             $classMetadata,
             $setterComments,
@@ -329,15 +333,11 @@ final class DtoManipulator implements ManipulatorInterface
         $comments = [];
 
         $typeHint = $this->getEntityTypeHint($options['type']);
-        if ($typeHint === '\\DateTimeInterface') {
-            $typeHint .= '|string';
+        if (in_array($typeHint, ['\\DateTime'], true)) {
+            $typeHint = '\DateTimeInterface|string';
         }
 
-        $typeHint = '@var ' . $typeHint;
-        $nullable = $options['nullable'] ?? false;;
-        if ($nullable) {
-            $typeHint .= '|null';
-        }
+        $typeHint = '@var ' . $typeHint . '|null';
         $comments[] = $typeHint;
 
         return $comments;
@@ -367,7 +367,7 @@ final class DtoManipulator implements ManipulatorInterface
             $relation->getTargetClassName(),
             $comments,
             null,
-            true,
+            false,
         );
 
         // Setter
@@ -441,12 +441,12 @@ final class DtoManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
-            $typeHint,
+            'array',
             $columnName,
             $relation->getTargetClassName(),
             $comments,
             null,
-            true,
+            false,
         );
 
         // Setter

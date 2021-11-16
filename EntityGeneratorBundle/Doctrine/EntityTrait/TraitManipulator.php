@@ -3,7 +3,9 @@
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTrait;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
@@ -19,7 +21,6 @@ use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor;
 use PhpParser\Parser;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseCollectionRelation;
-use Symfony\Bundle\MakerBundle\Doctrine\BaseRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseSingleRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
@@ -117,18 +118,21 @@ final class TraitManipulator implements ManipulatorInterface
     public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = [])
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
-        $typeHint = $this->getEntityTypeHint($columnOptions['type']) . 'Interface';
+        $typeHint = $this->getEntityTypeHint($columnOptions['type']);
 
-        if ($typeHint == '\\DateTimeInterface') {
+        if ($typeHint == '\\DateTime') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
         }
 
         $nullable = $columnOptions['nullable'] ?? false;
-        $isId = (bool) ($columnOptions['id'] ?? false);
+        $isPk = in_array($propertyName, $classMetadata->identifier);
 
-        $comments += $this->buildPropertyCommentLines($columnOptions);
+        $comments = array_merge(
+            $comments,
+            $this->buildPropertyCommentLines($columnOptions)
+        );
         $isCollection = in_array(
             $columnOptions['type'] ?? null,
             [
@@ -144,12 +148,12 @@ final class TraitManipulator implements ManipulatorInterface
             $columnName,
             '',
             $comments,
-            null,
-            !$nullable,
+            'null',
+            (!$nullable && !$isPk),
             $isCollection
         );
 
-        if ($isId) {
+        if ($isPk) {
             return;
         }
 
@@ -300,10 +304,9 @@ final class TraitManipulator implements ManipulatorInterface
 
     private function buildPropertyCommentLines(array $options): array
     {
-        $comments = [];
-
-        $typeHint = '@var ' . $this->getEntityTypeHint($options['type']);
-        $comments[] = $typeHint;
+        $comments = [
+            '@var ?' . $this->getEntityTypeHint($options['type'])
+        ];
 
         return $comments;
     }
@@ -376,12 +379,19 @@ final class TraitManipulator implements ManipulatorInterface
             : $this->addUseStatementIfNecessary($targetClass);
 
         $this->addUseStatementIfNecessary(ArrayCollection::class);
+        $this->addUseStatementIfNecessary(Collection::class);
+        $this->addUseStatementIfNecessary(Selectable::class);
         $this->addUseStatementIfNecessary(Criteria::class);
         $this->addUseStatementIfNecessary($targetClass);
 
-        $comments = ['@var ArrayCollection'];
+        $commentHint = sprintf(
+            '@var Collection<array-key, %s> & Selectable<array-key, %s>',
+            $typeHint,
+            $typeHint,
+        );
+        $comments = [$commentHint];
         if ($relation->isOwning()) {
-            // sometimes, we don't map the inverse relation
+            // sometimes, we doModel/OutgoingRouting/OutgoingRoutingDtoAbstract.php:n't map the inverse relation
             if ($relation->getMapInverseRelation()) {
                 $comments[] = 'inversedBy ' . $relation->getTargetPropertyName();
             }
@@ -395,7 +405,7 @@ final class TraitManipulator implements ManipulatorInterface
 
         $this->addProperty(
             $relation->getPropertyName(),
-            $typeHint,
+            'Collection',
             $columnName,
             $relation->getTargetClassName(),
             $comments,
@@ -519,11 +529,23 @@ final class TraitManipulator implements ManipulatorInterface
         $src = [];
         $template = <<<'TPL'
 if (!is_null($dto->[GETTER]())) {
-            $[INSTANCE]->[REPLACER](
-                $fkTransformer->[TRANSFORMER](
-                    $dto->[GETTER]()
-                )
+            /** @var [HINT] $entity */
+            $entity = $fkTransformer->[TRANSFORMER](
+                $dto->[GETTER]()
             );
+            $[INSTANCE]->[REPLACER]($entity);
+        }
+TPL;
+
+        $collectionTemplate = <<<'TPL'
+$[NAME] = $dto->[GETTER]();
+        if (!is_null($[NAME])) {
+
+            /** @var Collection<array-key, [HINT]> $replacement */
+            $replacement = $fkTransformer->[TRANSFORMER](
+                $[NAME]
+            );
+            $[INSTANCE]->[REPLACER]($replacement);
         }
 TPL;
 
@@ -542,10 +564,21 @@ TPL;
                 ? 'transformCollection'
                 : 'transform';
 
+            $foreignKeyFqdn =
+                substr(
+                    $property->getForeignKeyFqdn(),
+                    strrpos($property->getForeignKeyFqdn(), '\\') + 1
+                )
+                . 'Interface';
+
+            $fqdn = $property->isCollection()
+                ? $foreignKeyFqdn
+                : $property->getHint();
+
             $src[] = str_replace(
-                ['[INSTANCE]', '[GETTER]', '[REPLACER]', '[TRANSFORMER]'],
-                ['self', $getter, $replacer, $transformer],
-                $template
+                ['[INSTANCE]', '[NAME]', '[GETTER]', '[REPLACER]', '[TRANSFORMER]', '[HINT]'],
+                ['self', $property->getName(), $getter, $replacer, $transformer, $fqdn],
+                $property->isCollection() ? $collectionTemplate : $template
             );
         }
 
@@ -579,10 +612,21 @@ TPL;
                 ? 'transformCollection'
                 : 'transform';
 
+            $foreignKeyFqdn =
+                substr(
+                    $property->getForeignKeyFqdn(),
+                    strrpos($property->getForeignKeyFqdn(), '\\') + 1
+                )
+                . 'Interface';
+
+            $fqdn = $property->isCollection()
+                ? $foreignKeyFqdn
+                : $property->getHint();
+
             $src[] = str_replace(
-                ['[INSTANCE]', '[GETTER]', '[REPLACER]', '[TRANSFORMER]'],
-                ['this', $getter, $replacer, $transformer],
-                $template
+                ['[INSTANCE]', '[NAME]', '[GETTER]', '[REPLACER]', '[TRANSFORMER]', '[HINT]'],
+                ['this', $property->getName(), $getter, $replacer, $transformer, $fqdn],
+                $property->isCollection() ? $collectionTemplate : $template
             );
         }
 

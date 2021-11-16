@@ -23,7 +23,7 @@ class EmbeddedGetter extends Getter
         );
         $response[] = '{';
 
-        if ($this->returnType === '\\DateTimeInterface') {
+        if ($this->returnType === '\\DateTime') {
             $response[] =
                 '    return !is_null($this->'
                 . $this->propertyName

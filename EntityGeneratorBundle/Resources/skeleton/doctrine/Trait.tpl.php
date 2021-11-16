@@ -29,6 +29,7 @@ trait <?= $class_name."\n" ?>
     /**
      * Factory method
      * @internal use EntityTools instead
+     * @param <?= $parent_class_name . "Dto" ?> $dto
      */
     public static function fromDto(
         DataTransferObjectInterface $dto,
@@ -49,6 +50,7 @@ trait <?= $class_name."\n" ?>
 
     /**
      * @internal use EntityTools instead
+     * @param <?= $parent_class_name . "Dto" ?> $dto
      */
     public function updateFromDto(
         DataTransferObjectInterface $dto,

@@ -34,6 +34,9 @@ abstract class <?= $class_name." implements DataTransferObjectInterface\n" ?>
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(bool $hideSensitiveData = false): array
     {
         $response = [

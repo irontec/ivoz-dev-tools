@@ -69,7 +69,9 @@ final class InterfaceManipulator implements ManipulatorInterface
                 $str = $type . ' ';
 
                 if ($methodParameter->isOptional() || str_contains((string) $methodParameter->getType(), '?')) {
-                    $str = '?' . $type . ' ';
+                    if (!str_contains((string) $methodParameter->getType(), '|')) {
+                        $str = '?' . $type . ' ';
+                    }
                 }
             } elseif ($methodParameter->isArray()) {
                 $str = 'array ';
@@ -99,31 +101,39 @@ final class InterfaceManipulator implements ManipulatorInterface
             : '';
 
         $returnNamedTyped = $method->getReturnType();
-        $returnHint = '';
-        $nullableReturnType = $returnNamedTyped && $returnNamedTyped->allowsNull();
-        if ($returnNamedTyped instanceof \ReflectionType) {
-            $returnHint = (string) $returnNamedTyped;
-            $cleanReturnHint = str_replace('?', '', $returnHint);
+        $strReturnNamedTyped = $returnNamedTyped?->__toString() ?? '';
 
-            if ($returnHint !== 'static') {
-                if (false !== strpos($returnHint, '\\')) {
-                    $returnHint = $this->addUseStatementIfNecessary(
-                        $returnNamedTyped->__toString(),
-                        $classMetadata
-                    );
-                } elseif (class_exists($returnHint) || interface_exists($returnHint)) {
-                    $returnHint = '\\' . $returnHint;
-                } elseif (class_exists($cleanReturnHint) || interface_exists($cleanReturnHint)) {
-                    $returnHint = str_replace('?', '?\\', $returnHint);
+        $nullableReturnType = $returnNamedTyped && $returnNamedTyped->allowsNull();
+        $returnHints=[];
+        if ($returnNamedTyped instanceof \ReflectionType) {
+            $returnHints = explode('|', $strReturnNamedTyped);
+
+            foreach ($returnHints as $k => $returnHint) {
+                $cleanReturnHint = str_replace('?', '', $returnHint);
+
+                if ($returnHint !== 'static') {
+                    if (false !== strpos($returnHint, '\\')) {
+                        $returnHint = $this->addUseStatementIfNecessary(
+                            $returnNamedTyped->__toString(),
+                            $classMetadata
+                        );
+                    } elseif (class_exists($returnHint) || interface_exists($returnHint)) {
+                        $returnHint = '\\' . $returnHint;
+                    } elseif (class_exists($cleanReturnHint) || interface_exists($cleanReturnHint)) {
+                        $returnHint = str_replace('?', '?\\', $returnHint);
+                    }
                 }
+
+                $returnHints[$k] = $returnHint;
             }
         }
 
+        $hint = implode('|', $returnHints);
         $this->methods[] = new Method(
             $method->isStatic(),
             $method->getName(),
             $methodParameterArray,
-            $returnHint,
+            $hint,
             $nullableReturnType,
             explode("\n", $docComment)
         );

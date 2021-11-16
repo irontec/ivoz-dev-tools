@@ -2,7 +2,6 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTrait;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\CodeGeneratorUnitInterface;
 use Symfony\Bundle\MakerBundle\Str;
 
@@ -49,11 +48,14 @@ class Replacer implements CodeGeneratorUnitInterface
         $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
 
         $response = [];
+        $response[] = '/**';
+        $response[] = ' * @param Collection<array-key, '. $hint . '> $' . $this->propertyName;
+        $response[] = ' */';
         $response[] = sprintf(
             '%s function %s(%s %s): %s',
             $this->visibility,
             $methodName,
-            'ArrayCollection',
+            'Collection',
             '$' . $this->propertyName,
             $returnHint
         );
@@ -63,7 +65,8 @@ class Replacer implements CodeGeneratorUnitInterface
             'set' . Str::asCamelCase($association['mappedBy']),
             '$' . $this->propertyName,
             $this->propertyName,
-            'add' . ucfirst($singularProperty)
+            'add' . ucfirst($singularProperty),
+            $hint
         );
 
         $response[] = '{';
@@ -80,27 +83,33 @@ class Replacer implements CodeGeneratorUnitInterface
         string $mappedBy,
         string $paramName,
         string $propertyName,
-        string $adder
+        string $adder,
+        string $hint
     ): string
     {
         $template = <<<'TPL'
     $updatedEntities = [];
         $fallBackId = -1;
         foreach ([PARAM_NAME] as $entity) {
+            /** @var string|int $index */
             $index = $entity->getId() ? $entity->getId() : $fallBackId--;
             $updatedEntities[$index] = $entity;
             $entity->[MAPPED_BY]($this);
         }
-        $updatedEntityKeys = array_keys($updatedEntities);
 
         foreach ($this->[PROPERTY_NAME] as $key => $entity) {
             $identity = $entity->getId();
-            if (in_array($identity, $updatedEntityKeys)) {
+            if (!$identity) {
+                $this->[PROPERTY_NAME]->remove($key);
+                continue;
+            }
+
+            if (array_key_exists($identity, $updatedEntities)) {
                 $this->[PROPERTY_NAME]->set($key, $updatedEntities[$identity]);
+                unset($updatedEntities[$identity]);
             } else {
                 $this->[PROPERTY_NAME]->remove($key);
             }
-            unset($updatedEntities[$identity]);
         }
 
         foreach ($updatedEntities as $entity) {
@@ -111,8 +120,8 @@ class Replacer implements CodeGeneratorUnitInterface
 TPL;
 
         return str_replace(
-            ['[MAPPED_BY]', '[PARAM_NAME]', '[PROPERTY_NAME]', '[ADDER]'],
-            [$mappedBy, $paramName, $propertyName, $adder],
+            ['[MAPPED_BY]', '[PARAM_NAME]', '[PROPERTY_NAME]', '[ADDER]', '[HINT]'],
+            [$mappedBy, $paramName, $propertyName, $adder, $hint],
             $template
         );
     }

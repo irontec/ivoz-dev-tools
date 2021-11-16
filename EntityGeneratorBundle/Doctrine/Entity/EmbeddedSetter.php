@@ -31,8 +31,7 @@ class EmbeddedSetter extends Setter
         );
 
         $isEqual = sprintf(
-            '$isEqual = $this->%s && $this->%s->equals($%s);',
-            $this->propertyName,
+            '$isEqual = $this->%s->equals($%s);',
             $this->propertyName,
             $this->propertyName
         );

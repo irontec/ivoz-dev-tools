@@ -39,6 +39,7 @@ final class EntityManipulator implements ManipulatorInterface
     const FROM_DTO_INSTANCE_CONSTRUCTOR_PLACEHOLDER = '/*__fromDto_instance_constructor*/';
     const FROM_DTO_EMBEDDED_CONSTRUCTOR_PLACEHOLDER = '/*__fromDto_embedded_constructor*/';
     const FROM_DTO_SETTERS_PLACEHOLDER = '/*__fromDto_setters*/';
+    const UPDATE_FROM_DTO_ASSERTION_PLACEHOLDER = '/*__updateFromDto_assertions*/';
     const UPDATE_FROM_DTO_SETTERS_PLACEHOLDER = '/*__updateFromDto_body*/';
     const TO_DTO_SETTERS_PLACEHOLDER = '/*__toDto_body*/';
     const TO_ARRAY_PLACEHOLDER = '/*__toArray_body*/';
@@ -131,7 +132,7 @@ final class EntityManipulator implements ManipulatorInterface
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
-        if ($typeHint == '\\DateTimeInterface') {
+        if ($typeHint == '\\DateTime') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -140,7 +141,16 @@ final class EntityManipulator implements ManipulatorInterface
         $nullable = $columnOptions['nullable'] ?? false;
         $isId = (bool) ($columnOptions['id'] ?? false);
 
-        $comments += $this->buildPropertyCommentLines($columnOptions);
+        if ($nullable) {
+            $comments[] = '@var ?' . $typeHint;
+        } else {
+            $comments[] = '@var ' . $typeHint;
+        }
+
+        $comments = array_merge(
+            $comments,
+            $this->buildPropertyCommentLines($columnOptions)
+        );
         $defaultValue = $columnOptions['options']['default'] ?? null;
 
         if (!is_null($defaultValue)) {
@@ -154,7 +164,7 @@ final class EntityManipulator implements ManipulatorInterface
                 case 'bool':
                     $defaultValue = $defaultValue !== '0';
                     break;
-                case '\\DateTimeInterface':
+                case '\\DateTime':
                     $defaultValue = null;
                     break;
             }
@@ -167,7 +177,6 @@ final class EntityManipulator implements ManipulatorInterface
         if ($defaultValue === 'CURRENT_TIMESTAMP') {
             $defaultValue = null;
         }
-
 
         $this->addProperty(
             $propertyName,
@@ -220,9 +229,7 @@ final class EntityManipulator implements ManipulatorInterface
     public function addEmbeddedEntity(string $propertyName, string $className, ClassMetadata $classMetadata = null)
     {
         $typeHint = $this->addUseStatementIfNecessary($className);
-        $comments = [
-            '@var ' . $typeHint . ' | null'
-        ];
+        $comments = ['@var ' . $typeHint];
         $this->addEmbeddedProperty($propertyName, $typeHint, $propertyName, $typeHint, $comments, null, true);
         $this->addEmbeddedGetter($propertyName, $typeHint, false);
         $this->addEmbeddedSetter($propertyName, $typeHint, false, $classMetadata);
@@ -394,7 +401,7 @@ final class EntityManipulator implements ManipulatorInterface
 
         $comments = [];
         $comments[] = $relation->isNullable()
-            ? '@var ' . $typeHint. ' | null'
+            ? '@var ?' . $typeHint
             : '@var ' . $typeHint;
 
         $setterVisibility = 'protected';
@@ -536,13 +543,6 @@ final class EntityManipulator implements ManipulatorInterface
         return $visitor->getFoundNode();
     }
 
-    private function isInSameNamespace($class)
-    {
-        $namespace = substr($class, 0, strrpos($class, '\\'));
-
-        return $this->getNamespaceNode()->name->toCodeString() === $namespace;
-    }
-
     private function getThisFullClassName(): string
     {
         $class = $this->getClassNode();
@@ -572,8 +572,8 @@ final class EntityManipulator implements ManipulatorInterface
         foreach ($requiredProperties as $property) {
 
             $hint = $property->getHint();
-            if ($property->getHint() === '\\' . \DateTimeInterface::class) {
-                $hint .= '|string';
+            if ($property->getHint() === '\\' . \DateTime::class) {
+                $hint = '\DateTimeInterface|string';
             }
 
             $src[] = $property instanceof EmbeddedProperty
@@ -591,11 +591,20 @@ final class EntityManipulator implements ManipulatorInterface
 
         $src = [];
         foreach ($requiredProperties as $property) {
-            $src[] = sprintf(
-                '$this->set%s(%s);',
-                Str::asCamelCase($property->getName()),
-                '$' . $property->getName()
-            );
+
+            if ($property instanceof EmbeddedProperty) {
+                $src[] = sprintf(
+                    '$this->%s = %s;',
+                    $property->getName(),
+                    '$' . $property->getName()
+                );
+            } else {
+                $src[] = sprintf(
+                    '$this->set%s(%s);',
+                    Str::asCamelCase($property->getName()),
+                    '$' . $property->getName()
+                );
+            }
         }
         $srcStr = implode(
             "\n" . str_repeat($leftPad, 2),
@@ -677,11 +686,7 @@ final class EntityManipulator implements ManipulatorInterface
                 if ($property->isRequired()) {
                     $stmt .= $getter . '()->getId()';
                 } else {
-                    $stmt .=
-                        $getter
-                        . '() ? '
-                        . $getter . '()->getId()'
-                        . ' : null';
+                    $stmt .= $getter . '()?->getId()';
                 }
 
                 $src[] = $stmt;
@@ -786,6 +791,7 @@ final class EntityManipulator implements ManipulatorInterface
     private function setUpdateFromDto(string $leftPad): void
     {
         $src = [];
+        $assertions = [];
         foreach ($this->properties as $property) {
 
             if ($property instanceof EmbeddedProperty) {
@@ -801,12 +807,45 @@ final class EntityManipulator implements ManipulatorInterface
 
             $setter = 'set' . Str::asCamelCase($property->getName());
             $getter = 'get' . Str::asCamelCase($property->getName());
-            $stmt = $property->isForeignKey()
-                ? '->' . $setter . '($fkTransformer->transform($dto->' . $getter . '()))'
-                : '->' . $setter . '($dto->' . $getter . '())';
+
+            if ($property->isRequired()) {
+                $assertions[] = sprintf(
+                    '$%s = $dto->%s();',
+                    $property->getName(),
+                    $getter
+                );
+
+                $assertions[] = sprintf(
+                    'Assertion::notNull($%s, \'%s value is null, but non null value was expected.\');',
+                    $property->getName(),
+                    $getter,
+                );
+
+                $stmt = $property->isForeignKey()
+                    ? '->' . $setter . '($fkTransformer->transform($' . $property->getName() . '))'
+                    : '->' . $setter . '($' . $property->getName() . ')';
+
+            } else {
+
+                $stmt = $property->isForeignKey()
+                    ? '->' . $setter . '($fkTransformer->transform($dto->' . $getter . '()))'
+                    : '->' . $setter . '($dto->' . $getter . '())';
+            }
 
             $src[] = $stmt;
         }
+
+        $assertionsStr = join(
+            "\n" . str_repeat($leftPad, 2),
+            $assertions
+        );
+
+        $this->updateClass(
+            self::UPDATE_FROM_DTO_ASSERTION_PLACEHOLDER,
+            [new StringNode($assertionsStr)],
+            '',
+            ''
+        );
 
         $srcStr = join(
             "\n" . str_repeat($leftPad, 3),
@@ -897,8 +936,7 @@ final class EntityManipulator implements ManipulatorInterface
                 continue;
             }
 
-            $getter = 'get' . Str::asCamelCase($property->getName());
-            $src[] = '$dto->' . $getter . '()';
+            $src[] = '$' . $property->getName();
         }
 
         $srcStr = join(
@@ -923,9 +961,16 @@ final class EntityManipulator implements ManipulatorInterface
 
             $setter = 'set' . Str::asCamelCase($property->getName());
             $getter = 'get' . Str::asCamelCase($property->getName());
-            $stmt = $property->isForeignKey()
-                ? '->' . $setter . '($fkTransformer->transform($dto->' . $getter . '()))'
-                : '->' . $setter . '($dto->' . $getter . '())';
+
+            if ($property->isRequired()) {
+                $stmt = $property->isForeignKey()
+                    ? '->' . $setter . '($fkTransformer->transform($' . $property->getName() . '))'
+                    : '->' . $setter . '($' . $property->getName() . ')';
+            } else {
+                $stmt = $property->isForeignKey()
+                    ? '->' . $setter . '($fkTransformer->transform($dto->' . $getter . '()))'
+                    : '->' . $setter . '($dto->' . $getter . '())';
+            }
 
             if (empty($src)) {
                 $stmt =

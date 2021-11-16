@@ -28,6 +28,10 @@ class Property implements CodeGeneratorUnitInterface
             return $this->typeHint;
         }
 
+        if (str_contains($this->typeHint, '|')) {
+            return 'null|' . $this->typeHint;
+        }
+
         return '?' . $this->typeHint;
     }
 
@@ -77,10 +81,12 @@ class Property implements CodeGeneratorUnitInterface
             $response[] = ' */';
         }
 
-        $attr = $this->visibility . ' $' . $this->name;
-        if (!is_null($this->defaultValue)) {
+        $attr = $this->visibility /*. ' ' . $this->getHint()*/ . ' $' . $this->name;
+        if (!is_null($this->defaultValue) || !$this->isRequired()) {
 
-            if (is_array($this->defaultValue)) {
+            if ($this->defaultValue === 'null') {
+                $defaultValue = 'null';
+            } else if (is_array($this->defaultValue)) {
                 $defaultValue = '[]';
             } else {
                 $defaultValue = $this->defaultValue;
@@ -92,7 +98,14 @@ class Property implements CodeGeneratorUnitInterface
                             : 'false';
                         break;
                     case 'string':
-                        $defaultValue = '\'' . $this->defaultValue . '\'';
+                        if (!is_null($this->defaultValue)) {
+                            $defaultValue = '\'' . $this->defaultValue . '\'';
+                        }
+                        break;
+                    default:
+                        $defaultValue = !is_null($this->defaultValue)
+                            ? $this->defaultValue
+                            : 'null';
                 }
             }
 

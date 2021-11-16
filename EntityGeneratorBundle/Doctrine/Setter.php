@@ -39,8 +39,12 @@ class Setter implements CodeGeneratorUnitInterface
             ? '?' . $this->type
             : $this->type;
 
-        if ($this->type === '\\DateTimeInterface') {
-            $typeHint = '';
+        if ($this->type === '\\DateTime') {
+            $typeHint = 'string|\DateTimeInterface';
+            if ( $this->isNullable) {
+                $typeHint .= '|null';
+            }
+            $typeHint .= ' ';
         } else {
             $typeHint .= ' ';
         }

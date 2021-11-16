@@ -46,11 +46,16 @@ class Method implements CodeGeneratorUnitInterface
             $makeItNullable =
                 $this->returnType !== 'mixed'
                 && $this->isReturnTypeNullable
-                && strpos($this->returnType, '?') === false;
+                && !str_contains($this->returnType, '?')
+                && !str_contains($this->returnType, '|null');
 
-            $returnType = $makeItNullable
-                ? ': ?' . $this->returnType
-                : ': ' . $this->returnType;
+            if ($makeItNullable) {
+                $returnType = str_contains($this->returnType, '|')
+                    ? ': null|' . $this->returnType
+                    : ': ?' . $this->returnType;
+            } else {
+                $returnType = ': ' . $this->returnType;
+            }
         }
 
         $methodName = $this->method;

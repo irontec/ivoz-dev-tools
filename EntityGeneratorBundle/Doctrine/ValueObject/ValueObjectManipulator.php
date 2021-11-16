@@ -119,15 +119,22 @@ final class ValueObjectManipulator implements ManipulatorInterface
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
 
-        if ($typeHint == '\\DateTimeInterface') {
+        if ($typeHint == '\\DateTime') {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
         }
 
         $nullable = $columnOptions['nullable'] ?? false;
-
-        $comments += $this->buildPropertyCommentLines($columnOptions);
+        if ($nullable) {
+            $comments[] = '@var ?' . $typeHint;
+        } else {
+            $comments[] = '@var ' . $typeHint;
+        }
+        $comments = array_merge(
+            $comments,
+            $this->buildPropertyCommentLines($columnOptions)
+        );
         $defaultValue = $columnOptions['options']['default'] ?? null;
 
         if ($defaultValue) {

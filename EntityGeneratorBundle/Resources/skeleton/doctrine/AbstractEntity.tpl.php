@@ -87,6 +87,8 @@ abstract class <?= $class_name."\n" ?>
         ForeignKeyTransformerInterface $fkTransformer
     ): static {
         Assertion::isInstanceOf($dto, <?= $parent_class_name ?>Dto::class);
+        /*__updateFromDto_assertions*/
+
         /*__fromDto_embedded_constructor*/
         $self = new static(
             /*__fromDto_instance_constructor*/
@@ -108,6 +110,8 @@ abstract class <?= $class_name."\n" ?>
         ForeignKeyTransformerInterface $fkTransformer
     ): static {
         Assertion::isInstanceOf($dto, <?= $parent_class_name ?>Dto::class);
+
+        /*__updateFromDto_assertions*/
         /*__fromDto_embedded_constructor*/
         $this
             /*__updateFromDto_body*/;
