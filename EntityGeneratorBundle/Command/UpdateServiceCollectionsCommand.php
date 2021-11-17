@@ -138,6 +138,9 @@ class UpdateServiceCollectionsCommand extends Command
         return
             "\n"
             . $spaces
+            . '/** @var array<array-key, array> $bindedBaseServices */'
+            . "\n"
+            . $spaces
             . 'public static $bindedBaseServices = '
             . $servicesStr
             . ";\n";
