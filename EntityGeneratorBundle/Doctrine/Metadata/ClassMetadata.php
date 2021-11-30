@@ -4,6 +4,7 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata;
 
 use Doctrine\Instantiator\Instantiator;
 use Doctrine\Instantiator\InstantiatorInterface;
+use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\ORM\Mapping\ReflectionEmbeddedProperty;
 use Doctrine\ORM\Mapping\ClassMetadata as DoctrineClassMetadata;
 
@@ -11,6 +12,17 @@ class ClassMetadata extends DoctrineClassMetadata
 {
     /** @var InstantiatorInterface|null */
     private $instantiator;
+
+    public function __construct($entityName, ?NamingStrategy $namingStrategy = null)
+    {
+        $this->instantiator = new Instantiator();
+        parent::__construct($entityName, $namingStrategy);
+    }
+
+    public function newInstance()
+    {
+        return $this->instantiator->instantiate($this->name);
+    }
 
     public function wakeupReflection($reflService)
     {
