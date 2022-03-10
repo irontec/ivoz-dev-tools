@@ -4,17 +4,36 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine;
 
 class Property implements CodeGeneratorUnitInterface
 {
+    private $defaultValue;
+
     public function __construct(
         private string $name,
         private string $typeHint,
         private string $columnName,
         private array $comments,
-        private $defaultValue,
+        $defaultValue,
         private bool $required,
         private string $fkFqdn,
         private string $visibility = 'protected',
         private bool $isCollection = false
     ) {
+        if ($defaultValue === null) {
+            return;
+        }
+
+        if (!is_string($defaultValue)) {
+            $this->defaultValue = $defaultValue;
+            return;
+        }
+
+        if ($defaultValue === 'NULL') {
+            return;
+        }
+
+        $scapeCuotes = $defaultValue[0] === "'" && $defaultValue[strlen($defaultValue) -1] === "'";
+        $this->defaultValue = $scapeCuotes
+            ? substr($defaultValue, 1, -1)
+            : $defaultValue;
     }
 
     public function getName(): string
