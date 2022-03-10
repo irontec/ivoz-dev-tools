@@ -47,7 +47,10 @@ abstract class <?= $class_name."\n" ?>
     {
     }
 
-    public static function createDto(string|int|null $id = null): <?= $parent_class_name ?>Dto
+    /**
+     * @return <?= $parent_class_name ?>Dto
+     */
+    public static function createDto(string|int|null $id = null): DataTransferObjectInterface
     {
         return new <?= $parent_class_name ?>Dto($id);
     }
@@ -81,11 +84,12 @@ abstract class <?= $class_name."\n" ?>
      * Factory method
      * @internal use EntityTools instead
      * @param <?= $parent_class_name ?>Dto $dto
+     * @return static
      */
     public static function fromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ): static {
+    ): EntityInterface {
         Assertion::isInstanceOf($dto, <?= $parent_class_name ?>Dto::class);
         /*__updateFromDto_assertions*/
 

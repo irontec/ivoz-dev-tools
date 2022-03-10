@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace <?= $namespace ?>;
 
+use Ivoz\Core\Domain\Model\EntityInterface;
 use Ivoz\Core\Application\DataTransferObjectInterface;
 use Ivoz\Core\Application\ForeignKeyTransformerInterface;
 /*__class_use_statements*/
@@ -30,11 +31,12 @@ trait <?= $class_name."\n" ?>
      * Factory method
      * @internal use EntityTools instead
      * @param <?= $parent_class_name . "Dto" ?> $dto
+     * @return static
      */
     public static function fromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ): static {
+    ): EntityInterface {
         /** @var static $self */
         $self = parent::fromDto($dto, $fkTransformer);
         /*__fromDto_setters*/
