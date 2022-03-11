@@ -23,7 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class MakeEntitiesCommand extends Command
 {
-    protected static $defaultName = 'provider:make:entities';
+    protected static $defaultName = 'ivoz:make:entities';
 
     private $maker;
     private $fileManager;

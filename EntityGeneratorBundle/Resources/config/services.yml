@@ -26,10 +26,24 @@ services:
       $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeEntities'
       $fileManager: '@maker.file_manager'
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
-    tags: [{ name: 'console.command'}]
+    tags: [{ name: 'console.command' }]
+
+  provider.make.entities:
+    deprecated: "%service_id% is deprecated: use ivoz:make:entities instead"
+    class: IvozDevTools\EntityGeneratorBundle\Command\MakeEntitiesCommand
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeEntities'
+      $fileManager: '@maker.file_manager'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+    tags: [{ name: 'console.command', command: 'provider:make:entities' }]
 
   IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand:
-    tags: [{ name: 'console.command'}]
+    tags: [{ name: 'console.command' }]
+
+  provider.update.service_collections:
+    deprecated: "%service_id% is deprecated: use ivoz:update:service_collections instead"
+    class: IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand
+    tags: [{ name: 'console.command', command: 'provider:update:service_collections'}]
 
   IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata\ClassMetadataFactory: ~
 

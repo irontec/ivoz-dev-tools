@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class UpdateServiceCollectionsCommand extends Command
 {
+    protected static $defaultName = 'ivoz:update:service_collections';
     private $container;
 
     public function __construct(ContainerInterface $container)
@@ -24,7 +25,6 @@ class UpdateServiceCollectionsCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('provider:update:service_collections')
             ->setDescription('Updates binded services of service collections');
     }
 

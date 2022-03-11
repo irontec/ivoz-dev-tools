@@ -7,3 +7,8 @@ services:
   IvozDevTools\CommandlogBundle\Command\:
     resource: '%kernel.project_dir%/vendor/irontec/ivoz-dev-tools/CommandlogBundle/Command/*'
     tags: [{ name: 'console.command'}]
+
+  ivoz.commandlog.show:
+    deprecated: "%service_id% is deprecated: use ivoz:commandlog:show instead"
+    class: IvozDevTools\CommandlogBundle\Command\ShowCommand
+    tags: [{ name: 'console.command', command: 'provider:commandlog:show' }]

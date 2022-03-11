@@ -20,7 +20,7 @@ use Ivoz\Core\Domain\Model\LoggableEntityInterface;
  */
 class ShowCommand extends Command
 {
-    protected static $defaultName = 'provider:commandlog:show';
+    protected static $defaultName = 'ivoz:commandlog:show';
     private $em;
     private $connection;
 
