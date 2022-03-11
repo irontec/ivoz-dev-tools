@@ -91,9 +91,11 @@ final class DtoRegenerator
 
     public function makeDto($classMetadata)
     {
-        if (class_exists($classMetadata->name)) {
-            return;
-        }
+        try {
+            if (class_exists($classMetadata->name)) {
+                return;
+            }
+        } catch (\Exception $e) {}
 
         $classMetadata = clone $classMetadata;
         $classMetadata->name .= 'Dto';

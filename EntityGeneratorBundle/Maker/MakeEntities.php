@@ -84,9 +84,11 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
                 throw new \Exception('Namespace identifier not found in doctrine.orm.mappings');
             }
 
-            $allEntities = $this
-                ->doctrineHelper
-                ->getMetadata(null, true);
+            try {
+                $allEntities = $this
+                    ->doctrineHelper
+                    ->getMetadata(null, true);
+            } catch (\Exception $e) {}
 
             $targetEntities = array_filter(
                 $allEntities,

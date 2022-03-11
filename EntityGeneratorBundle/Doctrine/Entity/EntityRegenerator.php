@@ -76,9 +76,11 @@ final class EntityRegenerator
 
     public function makeEntity($classMetadata)
     {
-        if (class_exists($classMetadata->name)) {
-            return;
-        }
+        try {
+            if (class_exists($classMetadata->name)) {
+                return;
+            }
+        } catch (\Exception $e) {}
 
         [$classPath, $content] = $this->getClassTemplate(
             $classMetadata,
@@ -150,6 +152,9 @@ final class EntityRegenerator
     {
         /* @var $classReflection \ReflectionClass */
         $classReflection = $classMetadata->reflClass;
+        if (is_null($classReflection)) {
+            return [];
+        }
 
         $targetFields = array_merge(
             array_keys($classMetadata->fieldMappings),

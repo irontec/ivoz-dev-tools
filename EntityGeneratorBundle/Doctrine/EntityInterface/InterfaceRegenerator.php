@@ -180,6 +180,14 @@ final class InterfaceRegenerator
         );
 
         $className = str_replace('Interface', '', $classMetadata->getName());
+
+        try {
+            class_exists($className);
+        } catch (\Exception $e) {
+            $manipulator->updateSourceCode();
+            return;
+        }
+
         $reflectionClass = new \ReflectionClass($className);
         $reflectionClassInterface = new \ReflectionClass($entityInterface);
         $publicMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
