@@ -19,12 +19,17 @@ class ClassMetadata extends DoctrineClassMetadata
         parent::__construct($entityName, $namingStrategy);
     }
 
+    /**
+     * Creates a new instance of the mapped class, without invoking the constructor.
+     *
+     * @return object
+     */
     public function newInstance()
     {
         return $this->instantiator->instantiate($this->name);
     }
 
-    public function wakeupReflection($reflService)
+    public function wakeupReflection($reflService): void
     {
         // Restore ReflectionClass and properties
         $this->reflClass    = $reflService->getClass($this->name);
