@@ -37,6 +37,28 @@ services:
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [{ name: 'console.command', command: 'provider:make:entities' }]
 
+  IvozDevTools\EntityGeneratorBundle\Maker\MakeInterfaces:
+    arguments:
+      $fileManager: '@maker.file_manager'
+      $doctrineHelper: '@maker.doctrine_helper'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+
+  IvozDevTools\EntityGeneratorBundle\Command\MakeInterfacesCommand:
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeInterfaces'
+      $fileManager: '@maker.file_manager'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+    tags: [{ name: 'console.command' }]
+
+  provider.make.interfaces:
+    deprecated: "%service_id% is deprecated: use ivoz:make:entities instead"
+    class: IvozDevTools\EntityGeneratorBundle\Command\MakeEntitiesCommand
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeInterfaces'
+      $fileManager: '@maker.file_manager'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+    tags: [{ name: 'console.command', command: 'provider:make:entities' }]
+
   IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand:
     tags: [{ name: 'console.command' }]
 

@@ -84,6 +84,17 @@ final class Regenerator
             $this->traitRegenerator->makeTrait($classMetadata);
             $this->entityRegenerator->makeEntity($classMetadata);
             $this->dtoRegenerator->makeDto($classMetadata);
+        }
+    }
+
+    public function regenerateInterfaces(string $classOrNamespace)
+    {
+        /** @var ClassMetadataInfo $classMetadata */
+        $classMetadata = $this->getMetadata($classOrNamespace);
+        $isMappedSuperclass = $classMetadata->isMappedSuperclass;
+        $isEmbeddedClass = $classMetadata->isEmbeddedClass;
+
+        if (!$isEmbeddedClass && !$isMappedSuperclass) {
             $this->interfaceRegenerator->makeInterface($classMetadata);
         }
     }

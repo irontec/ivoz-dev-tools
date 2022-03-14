@@ -23,7 +23,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Question\Question;
 
-final class MakeEntities extends AbstractMaker implements InputAwareMakerInterface
+final class MakeInterfaces extends AbstractMaker implements InputAwareMakerInterface
 {
     private $fileManager;
     private $doctrineHelper;
@@ -48,7 +48,7 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
 
     public static function getCommandName(): string
     {
-        return 'ivoz:make:entities';
+        return 'ivoz:make:interfaces';
     }
 
     public function configureCommand(Command $command, InputConfiguration $inputConf)
@@ -637,7 +637,7 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
             $generator
         );
 
-        $regenerator->regenerateEntities(
+        $regenerator->regenerateInterfaces(
             $classOrNamespace
         );
     }
