@@ -71,7 +71,6 @@ class ClassMetadata extends DoctrineClassMetadata
             }
 
             try {
-                /** @phpstan-ignore-next-line */
                 $this->reflFields[$field] = isset($mapping['declared'])
                     ? $reflService->getAccessibleProperty($mapping['declared'], $field)
                     : $reflService->getAccessibleProperty($this->name, $field);

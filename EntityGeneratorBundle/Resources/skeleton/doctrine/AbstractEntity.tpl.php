@@ -47,10 +47,7 @@ abstract class <?= $class_name."\n" ?>
     {
     }
 
-    /**
-     * @return <?= $parent_class_name ?>Dto
-     */
-    public static function createDto(string|int|null $id = null): DataTransferObjectInterface
+    public static function createDto(string|int|null $id = null): <?= $parent_class_name ?>Dto
     {
         return new <?= $parent_class_name ?>Dto($id);
     }

@@ -16,7 +16,7 @@ class ClassMetadataFactory extends DoctrineClassMetadataFactory
 {
     private $em;
 
-    public function setEntityManager(EntityManagerInterface $em)
+    public function setEntityManager(EntityManagerInterface $em): void
     {
         $this->em = $em;
         parent::setEntityManager($em);
@@ -25,7 +25,7 @@ class ClassMetadataFactory extends DoctrineClassMetadataFactory
     /**
      * {@inheritDoc}
      */
-    protected function newClassMetadataInstance($className)
+    protected function newClassMetadataInstance($className): ClassMetadata
     {
         return new ClassMetadata(
             $className,
@@ -33,7 +33,7 @@ class ClassMetadataFactory extends DoctrineClassMetadataFactory
         );
     }
 
-    protected function getParentClasses($name)
+    protected function getParentClasses($name): array
     {
         // Collect parent classes, ignoring transient (not-mapped) classes.
         $parentClasses = [];
@@ -51,14 +51,14 @@ class ClassMetadataFactory extends DoctrineClassMetadataFactory
         return $parentClasses;
     }
 
-    protected function initializeReflection(ClassMetadataInterface $class, ReflectionService $reflService)
+    protected function initializeReflection(ClassMetadataInterface $class, ReflectionService $reflService): void
     {
         try {
             parent::initializeReflection($class, $reflService);
         } catch (\Exception $e) {}
     }
 
-    protected function wakeupReflection(ClassMetadataInterface $class, ReflectionService $reflService)
+    protected function wakeupReflection(ClassMetadataInterface $class, ReflectionService $reflService): void
     {
         try {
             parent::wakeupReflection($class, $reflService);

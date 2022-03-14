@@ -53,12 +53,13 @@ final class InterfaceManipulator implements ManipulatorInterface
         $methodParameterArray = [];
         foreach ($methodParameters as $methodParameter) {
             $str = '';
+            $refType = $methodParameter->getType();
+
             try {
-                $refType = $methodParameter->getType();
-                $strType = $refType->getName();
-                $parameterClass = ! $refType->isBuiltin()
-                    ? $refType->getName()
-                    : null;
+                $parameterClass = null;
+                if ($refType instanceof \ReflectionNamedType && ! $refType->isBuiltin()) {
+                    $parameterClass = $refType->getName();
+                }
 
             } catch (\Exception $e) {
                 // Interface does not exist yet
@@ -78,10 +79,10 @@ final class InterfaceManipulator implements ManipulatorInterface
                         $str = '?' . $type . ' ';
                     }
                 }
-            } elseif ($methodParameter->getType()->getName() === 'array') {
+            } elseif ($refType instanceof \ReflectionNamedType && $refType->getName() === 'array') {
                 $str = 'array ';
             } elseif ($methodParameter->hasType()) {
-                $type = (string) $methodParameter->getType();
+                $type = (string) $refType;
                 $str = $type . ' ';
             }
 
