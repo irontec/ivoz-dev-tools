@@ -59,6 +59,29 @@ services:
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [{ name: 'console.command', command: 'provider:make:entities' }]
 
+  #    REPOSITORY SERVICE
+  IvozDevTools\EntityGeneratorBundle\Maker\MakeRepositories:
+    arguments:
+      $fileManager: '@maker.file_manager'
+      $doctrineHelper: '@maker.doctrine_helper'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+
+  IvozDevTools\EntityGeneratorBundle\Command\MakeRepositoriesCommand:
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeRepositories'
+      $fileManager: '@maker.file_manager'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+    tags: [ { name: 'console.command' } ]
+
+  provider.make.repositories:
+    deprecated: "%service_id% is deprecated: use ivoz:make:repositories instead"
+    class: IvozDevTools\EntityGeneratorBundle\Command\MakeRepositoriesCommand
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeRepositories'
+      $fileManager: '@maker.file_manager'
+      $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
+    tags: [ { name: 'console.command', command: 'provider:make:repositories' } ]
+
   IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand:
     tags: [{ name: 'console.command' }]
 

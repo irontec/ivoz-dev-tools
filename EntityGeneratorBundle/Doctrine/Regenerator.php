@@ -10,6 +10,7 @@ use Doctrine\Persistence\Mapping\MappingException as PersistenceMappingException
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Dto\DtoRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EntityRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityInterface\InterfaceRegenerator;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Repository\RepositoryRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ValueObject\ValueObjectRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Generator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTrait\TraitRegenerator;
@@ -22,13 +23,14 @@ use Symfony\Bundle\MakerBundle\FileManager;
  */
 final class Regenerator
 {
-    private $doctrineHelper;
+    private DoctrineHelper $doctrineHelper;
 
-    private $interfaceRegenerator;
-    private $entityRegenerator;
-    private $voRegenerator;
-    private $dtoRegenerator;
-    private $traitRegenerator;
+    private InterfaceRegenerator $interfaceRegenerator;
+    private RepositoryRegenerator $repositoryRegenerator;
+    private EntityRegenerator $entityRegenerator;
+    private ValueObjectRegenerator $voRegenerator;
+    private DtoRegenerator $dtoRegenerator;
+    private TraitRegenerator $traitRegenerator;
 
     public function __construct(
         DoctrineHelper $doctrineHelper,
@@ -40,6 +42,12 @@ final class Regenerator
         $this->interfaceRegenerator = new InterfaceRegenerator(
             $fileManager,
             $generator
+        );
+
+        $this->repositoryRegenerator = new RepositoryRegenerator(
+            $fileManager,
+            $generator,
+            $doctrineHelper
         );
 
         $this->entityRegenerator = new EntityRegenerator(
@@ -98,6 +106,18 @@ final class Regenerator
             $this->interfaceRegenerator->makeInterface($classMetadata);
         }
     }
+
+    public function regenerateRepositories(string $classOrNamespace){
+        /** @var ClassMetadataInfo $classMetadata */
+        $classMetadata = $this->getMetadata($classOrNamespace);
+        $isMappedSuperclass = $classMetadata->isMappedSuperclass;
+        $isEmbeddedClass = $classMetadata->isEmbeddedClass;
+
+        if (!$isEmbeddedClass && !$isMappedSuperclass) {
+            $this->repositoryRegenerator->makeEmptyRepository($classMetadata);
+        }
+    }
+
 
     private function getMetadata(string $classOrNamespace): ClassMetadata
     {
