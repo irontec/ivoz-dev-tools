@@ -55,7 +55,7 @@ final class MakeInterfacesCommand extends Command
 
         if ($this->checkDependencies) {
             $dependencies = new DependencyBuilder();
-            $this->maker->configureDependencies($dependencies, $input);
+            $this->maker->configureDependencies($dependencies);
 
             if (!$dependencies->isPhpVersionSatisfied()) {
                 throw new RuntimeCommandException('The make:entity command requires that you use PHP 7.1 or higher.');
