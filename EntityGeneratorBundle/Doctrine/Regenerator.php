@@ -46,8 +46,7 @@ final class Regenerator
 
         $this->repositoryRegenerator = new RepositoryRegenerator(
             $fileManager,
-            $generator,
-            $doctrineHelper
+            $generator
         );
 
         $this->entityRegenerator = new EntityRegenerator(

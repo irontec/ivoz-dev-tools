@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Dto\DtoManipulator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Generator;
-use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\FileManager;
 
 /**
@@ -14,19 +13,12 @@ use Symfony\Bundle\MakerBundle\FileManager;
  */
 final class RepositoryRegenerator
 {
-    private $fileManager;
-    private $generator;
-    private $doctrineHelper;
 
     public function __construct(
-        FileManager    $fileManager,
-        Generator      $generator,
-        DoctrineHelper $doctrineHelper
+        private FileManager $fileManager,
+        private Generator   $generator
     )
     {
-        $this->fileManager = $fileManager;
-        $this->generator = $generator;
-        $this->doctrineHelper = $doctrineHelper;
     }
 
 

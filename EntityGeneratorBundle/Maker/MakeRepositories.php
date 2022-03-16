@@ -4,40 +4,38 @@ namespace IvozDevTools\EntityGeneratorBundle\Maker;
 
 use Doctrine\ORM\EntityManagerInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Regenerator;
+use IvozDevTools\EntityGeneratorBundle\Generator as IvozGenerator;
+use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\Doctrine\ORMDependencyBuilder;
 use Symfony\Bundle\MakerBundle\FileManager;
-use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputAwareMakerInterface;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Bundle\MakerBundle\Maker\AbstractMaker;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 final class MakeRepositories extends AbstractMaker implements InputAwareMakerInterface
 {
-    private FileManager $fileManager;
-    private DoctrineHelper $doctrineHelper;
-    private Generator $generator;
+    private IvozGenerator $generator;
 
+    /**
+     * @param IvozGenerator $generator
+     */
     public function __construct(
-        FileManager $fileManager,
-        DoctrineHelper $doctrineHelper,
-        Generator $generator = null
-    )
-    {
-        $this->fileManager = $fileManager;
-        $this->doctrineHelper = $doctrineHelper;
-
-        if (null === $generator) {
-            @trigger_error(sprintf('Passing a "%s" instance as 4th argument is mandatory since version 1.5.', Generator::class), E_USER_DEPRECATED);
-            $this->generator = new Generator($fileManager, 'App\\');
-        } else {
-            $this->generator = $generator;
+        Generator $generator,
+        private FileManager $fileManager,
+        private DoctrineHelper $doctrineHelper
+    ) {
+        if (!$generator instanceof IvozGenerator) {
+            throw new \RuntimeException('generator must be instance of IvozDevTools\EntityGeneratorBundle\Generator');
         }
+
+        $this->generator = $generator;
     }
 
     public static function getCommandName(): string
@@ -110,7 +108,9 @@ final class MakeRepositories extends AbstractMaker implements InputAwareMakerInt
 
     private function getEntityNamespaces(string $targetNamespace): ?string
     {
-        $managers = $this->doctrineHelper->getRegistry()->getManagers();
+        /** @var ManagerRegistry $registry */
+        $registry = $this->doctrineHelper->getRegistry();
+        $managers = $registry->getManagers();
 
         /** @var EntityManagerInterface $em */
         foreach ($managers as $em) {
@@ -138,7 +138,7 @@ final class MakeRepositories extends AbstractMaker implements InputAwareMakerInt
      */
     private function regenerateRepositoriesInterfaces(
         string $classOrNamespace,
-        Generator $generator
+        IvozGenerator $generator
     ) {
         $regenerator = new Regenerator(
             $this->doctrineHelper,
