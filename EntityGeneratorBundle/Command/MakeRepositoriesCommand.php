@@ -21,39 +21,36 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @internal
  */
-final class MakeInterfacesCommand extends Command
+final class MakeRepositoriesCommand extends Command
 {
-    protected static $defaultName = 'ivoz:make:interfaces';
+    protected static $defaultName = 'ivoz:make:entities';
 
-    private $maker;
-    private $fileManager;
-    private $inputConfig;
+    private InputConfiguration $inputConfig;
+
     /** @var ConsoleStyle */
-    private $io;
-    private $checkDependencies = true;
-    private $generator;
+    private ConsoleStyle $io;
+    private bool $checkDependencies = true;
 
-    public function __construct(MakerInterface $maker, FileManager $fileManager, Generator $generator)
-    {
-        $this->maker = $maker;
-        $this->fileManager = $fileManager;
+    public function __construct(
+        private MakerInterface $maker,
+        private FileManager $fileManager,
+        private Generator $generator
+    ) {
         $this->inputConfig = new InputConfiguration();
-        $this->generator = $generator;
-
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->maker->configureCommand($this, $this->inputConfig);
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected  function initialize( InputInterface $input, OutputInterface $output)
     {
         $this->io = new ConsoleStyle($input, $output);
         $this->fileManager->setIO($this->io);
 
-        if ($this->checkDependencies) {
+        if($this->checkDependencies){
             $dependencies = new DependencyBuilder();
             $this->maker->configureDependencies($dependencies);
 
@@ -124,4 +121,5 @@ final class MakeInterfacesCommand extends Command
     {
         $this->checkDependencies = $checkDeps;
     }
+
 }
