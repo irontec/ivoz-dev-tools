@@ -25,9 +25,13 @@ class Getter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
+        $returnType = $this->returnType !== 'resource'
+            ? $this->returnType
+            : 'string';
+
         $returnType = $this->isReturnTypeNullable
-            ? ': ?' . $this->returnType
-            : ': ' . $this->returnType;
+            ? ': ?' . $returnType
+            : ': ' . $returnType;
 
         if (is_null($this->returnType)) {
             $returnType = '';
@@ -55,6 +59,14 @@ class Getter implements CodeGeneratorUnitInterface
 
             $response[] = '    return ' . $stmt;
 
+        } else if ($this->returnType === 'resource') {
+            if ($this->isReturnTypeNullable) {
+                $response[] = '    if (is_null($this->' . $this->propertyName . ')) {';
+                $response[] = '        return null;';
+                $response[] = '    }';
+                $response[] = '';
+            }
+            $response[] = '    return stream_get_contents($this->' . $this->propertyName . ');';
         } else {
             $response[] = '    return $this->' . $this->propertyName . ';';
         }

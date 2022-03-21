@@ -118,6 +118,9 @@ final class DtoManipulator implements ManipulatorInterface
         $fieldName = $columnOptions['fieldName'];
         $isPk = in_array($fieldName, $classMetadata->identifier);
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
+        if ($typeHint === 'resource') {
+            $typeHint = 'string';
+        }
 
         $nullable = $columnOptions['nullable'] ?? false;
 

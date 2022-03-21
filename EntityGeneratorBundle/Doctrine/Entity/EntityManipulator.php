@@ -141,10 +141,18 @@ final class EntityManipulator implements ManipulatorInterface
         $nullable = $columnOptions['nullable'] ?? false;
         $isId = (bool) ($columnOptions['id'] ?? false);
 
-        if ($nullable) {
-            $comments[] = '@var ?' . $typeHint;
+        if ($typeHint === 'resource') {
+            if ($nullable) {
+                $comments[] = '@var null | ' . $typeHint;
+            } else {
+                $comments[] = '@var ' . $typeHint;
+            }
         } else {
-            $comments[] = '@var ' . $typeHint;
+            if ($nullable) {
+                $comments[] = '@var ?' . $typeHint;
+            } else {
+                $comments[] = '@var ' . $typeHint;
+            }
         }
 
         $comments = array_merge(
@@ -206,7 +214,7 @@ final class EntityManipulator implements ManipulatorInterface
             );
         }
 
-        $returnHint = '@return ' . $typeHint;
+        $returnHint = '@return ' . ($typeHint !== 'resource' ? $typeHint : 'string');
         if ($nullable) {
             $returnHint .= ' | null';
         }
