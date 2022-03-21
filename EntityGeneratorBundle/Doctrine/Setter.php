@@ -35,16 +35,21 @@ class Setter implements CodeGeneratorUnitInterface
 
     public function toString(string $nlLeftPad = ''): string
     {
+        $type = $this->type !== 'resource'
+            ? $this->type
+            : 'string';
+
         $typeHint = $this->isNullable
-            ? '?' . $this->type
-            : $this->type;
+            ? '?' . $type
+            : $type;
 
         if ($this->type === '\\DateTime') {
             $typeHint = 'string|\DateTimeInterface';
-            if ( $this->isNullable) {
+            if ($this->isNullable) {
                 $typeHint .= '|null';
             }
             $typeHint .= ' ';
+
         } else {
             $typeHint .= ' ';
         }
@@ -77,7 +82,24 @@ class Setter implements CodeGeneratorUnitInterface
         if (!empty(trim($assertions))) {
             $response[] = $assertions;
         }
-        $response[] = '    $this->' . $this->propertyName . ' = $' . $this->propertyName . ';';
+
+        if ($this->type === 'resource') {
+            if ($this->isNullable) {
+                $response[] = '    if (is_null($this->' . $this->propertyName . ')) {';
+                $response[] = '        $this->' . $this->propertyName . ' = $' . $this->propertyName . ';';
+                $response[] = '';
+                $response[] = '        return $this;';
+                $response[] = '    }';
+                $response[] = '';
+            }
+
+            $response[] = '    $stream = fopen(\'php://memory\',\'r+\');';
+            $response[] = '    fwrite($stream, $' . $this->propertyName . ');';
+            $response[] = '    rewind($stream);';
+            $response[] = '    $this->' . $this->propertyName . ' = $stream;';
+        } else {
+            $response[] = '    $this->' . $this->propertyName . ' = $' . $this->propertyName . ';';
+        }
         $response[] = '';
         $response[] = '    return $this;';
         $response[] = '}';

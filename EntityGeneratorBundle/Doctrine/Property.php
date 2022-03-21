@@ -30,7 +30,11 @@ class Property implements CodeGeneratorUnitInterface
             return;
         }
 
-        $scapeCuotes = $defaultValue[0] === "'" && $defaultValue[strlen($defaultValue) -1] === "'";
+        $scapeCuotes =
+            !empty($defaultValue)
+            && $defaultValue[0] === "'"
+            && $defaultValue[strlen($defaultValue) -1] === "'";
+
         $this->defaultValue = $scapeCuotes
             ? substr($defaultValue, 1, -1)
             : $defaultValue;
@@ -43,15 +47,19 @@ class Property implements CodeGeneratorUnitInterface
 
     public function getHint(): string
     {
+        $typeHint = $this->typeHint !== 'resource'
+            ? $this->typeHint
+            : 'string';
+
         if ($this->required) {
-            return $this->typeHint;
+            return $typeHint;
         }
 
-        if (str_contains($this->typeHint, '|')) {
-            return 'null|' . $this->typeHint;
+        if (str_contains($typeHint, '|')) {
+            return 'null|' . $typeHint;
         }
 
-        return '?' . $this->typeHint;
+        return '?' . $typeHint;
     }
 
     public function getColumnName(): string
@@ -100,7 +108,7 @@ class Property implements CodeGeneratorUnitInterface
             $response[] = ' */';
         }
 
-        $attr = $this->visibility /*. ' ' . $this->getHint()*/ . ' $' . $this->name;
+        $attr = $this->visibility . ' $' . $this->name;
         if (!is_null($this->defaultValue) || !$this->isRequired()) {
 
             if ($this->defaultValue === 'null') {

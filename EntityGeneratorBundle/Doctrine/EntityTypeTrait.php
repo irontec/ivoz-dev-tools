@@ -10,10 +10,10 @@ trait EntityTypeTrait
             case 'string':
             case 'text':
             case 'guid':
+                return 'string';
             case 'binary':
             case 'blob':
-                return 'string';
-
+                return 'resource';
             case 'array':
             case 'simple_array':
             case 'json':
