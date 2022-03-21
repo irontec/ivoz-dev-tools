@@ -113,7 +113,8 @@ final class Regenerator
         $isEmbeddedClass = $classMetadata->isEmbeddedClass;
 
         if (!$isEmbeddedClass && !$isMappedSuperclass) {
-            $this->repositoryRegenerator->makeEmptyRepository($classMetadata);
+            $this->repositoryRegenerator->makeEmptyInterface($classMetadata);
+            $this->repositoryRegenerator->makeDoctrineRepository($classMetadata);
         }
     }
 
