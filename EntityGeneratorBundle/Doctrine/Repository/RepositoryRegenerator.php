@@ -25,14 +25,14 @@ final class RepositoryRegenerator
     public function makeDoctrineRepository($classMetadata)
     {
         $classMetadata = clone $classMetadata;
-        if (class_exists($classMetadata->name)) {
-            return;
-        }
-
         $entityNamespace = $classMetadata->name;
         $interfaceNamespace = $classMetadata->name.'RepositoryInterface';
         $interfaceName = Str::getShortClassName($interfaceNamespace);
         $classMetadata->name = $classMetadata->customRepositoryClassName;
+        if (class_exists($classMetadata->name)) {
+            return;
+        }
+
         $classMetadata->rootEntityName = $classMetadata->customRepositoryClassName;
         $variables = [
             'interface_namespace' => $interfaceNamespace,
