@@ -93,7 +93,7 @@ class Setter implements CodeGeneratorUnitInterface
                 $response[] = '';
             }
 
-            $response[] = '    $stream = fopen(\'php://memory\',\'r+\');';
+            $response[] = '    $stream = fopen(\'php://memory\', \'r+\');';
             $response[] = '    fwrite($stream, $' . $this->propertyName . ');';
             $response[] = '    rewind($stream);';
             $response[] = '    $this->' . $this->propertyName . ' = $stream;';
