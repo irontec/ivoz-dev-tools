@@ -26,7 +26,7 @@ final class RepositoryRegenerator
     {
         $classMetadata = clone $classMetadata;
         $entityNamespace = $classMetadata->name;
-        $interfaceNamespace = $classMetadata->name.'RepositoryInterface';
+        $interfaceNamespace = $classMetadata->name . 'Repository';
         $interfaceName = Str::getShortClassName($interfaceNamespace);
         $classMetadata->name = $classMetadata->customRepositoryClassName;
         if (class_exists($classMetadata->name)) {
@@ -68,11 +68,12 @@ final class RepositoryRegenerator
 
         $fqdn =
             $classMetadata->name
-            . 'RepositoryInterface';
+            . 'Repository';
 
-        if (class_exists($fqdn)) {
+        if (interface_exists($fqdn)) {
             return;
         }
+
         $classMetadata->name = $fqdn;
         $classMetadata->rootEntityName = $fqdn;
 
