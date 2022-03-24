@@ -85,7 +85,7 @@ class Setter implements CodeGeneratorUnitInterface
 
         if ($this->type === 'resource') {
             if ($this->isNullable) {
-                $response[] = '    if (is_null($this->' . $this->propertyName . ')) {';
+                $response[] = '    if (is_null($' . $this->propertyName . ')) {';
                 $response[] = '        $this->' . $this->propertyName . ' = $' . $this->propertyName . ';';
                 $response[] = '';
                 $response[] = '        return $this;';
