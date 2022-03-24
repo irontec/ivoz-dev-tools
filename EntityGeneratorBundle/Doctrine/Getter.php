@@ -66,6 +66,7 @@ class Getter implements CodeGeneratorUnitInterface
                 $response[] = '    }';
                 $response[] = '';
             }
+            $response[] = '    /** @var string $response */';
             $response[] = '    $response = stream_get_contents($this->' . $this->propertyName . ');';
             $response[] = '    rewind($this->' . $this->propertyName . ');';
             $response[] = '';
