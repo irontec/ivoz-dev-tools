@@ -3,6 +3,7 @@
 namespace IvozDevTools\EntityGeneratorBundle\Maker;
 
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Regenerator;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
@@ -185,9 +186,8 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
 
         $type = null;
         $types = Type::getTypesMap();
-        // remove deprecated json_array
-        /** @phpstan-ignore-next-line  */
-        unset($types[Type::JSON_ARRAY]);
+
+        unset($types[Types::JSON]);
 
         $allValidTypes = array_merge(
             array_keys($types),

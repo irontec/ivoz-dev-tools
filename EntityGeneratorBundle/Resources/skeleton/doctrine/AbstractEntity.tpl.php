@@ -81,12 +81,11 @@ abstract class <?= $class_name."\n" ?>
      * Factory method
      * @internal use EntityTools instead
      * @param <?= $parent_class_name ?>Dto $dto
-     * @return static
      */
     public static function fromDto(
         DataTransferObjectInterface $dto,
         ForeignKeyTransformerInterface $fkTransformer
-    ): EntityInterface {
+    ): static {
         Assertion::isInstanceOf($dto, <?= $parent_class_name ?>Dto::class);
         /*__updateFromDto_assertions*/
 

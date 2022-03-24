@@ -338,6 +338,8 @@ final class DtoManipulator implements ManipulatorInterface
         $typeHint = $this->getEntityTypeHint($options['type']);
         if (in_array($typeHint, ['\\DateTime'], true)) {
             $typeHint = '\DateTimeInterface|string';
+        } else if ($typeHint === 'resource') {
+            $typeHint = 'string';
         }
 
         $typeHint = '@var ' . $typeHint . '|null';

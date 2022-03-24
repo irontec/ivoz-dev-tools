@@ -83,6 +83,15 @@ final class InterfaceManipulator implements ManipulatorInterface
                 $str = 'array ';
             } elseif ($methodParameter->hasType()) {
                 $type = (string) $refType;
+                $typeArgs = explode('|', $type);
+                foreach ($typeArgs as $k => $typeArg) {
+                    if ($typeArg === 'DateTimeInterface')  {
+                        $this->addUseStatementIfNecessary(
+                            'DateTimeInterface',
+                            $classMetadata
+                        );
+                    }
+                }
                 $str = $type . ' ';
             }
 
