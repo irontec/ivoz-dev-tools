@@ -11,6 +11,7 @@ class <?= $class_name ?> extends <?= $class_name ?>Abstract implements <?= $clas
 
     /**
      * @codeCoverageIgnore
+     * @return array<string, mixed>
      */
     public function getChangeSet(): array
     {

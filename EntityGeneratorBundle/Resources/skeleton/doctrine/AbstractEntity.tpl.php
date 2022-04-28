@@ -128,6 +128,9 @@ abstract class <?= $class_name."\n" ?>
             /*__toDto_body*/;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function __toArray(): array
     {
         return [
