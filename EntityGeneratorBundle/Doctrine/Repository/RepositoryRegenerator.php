@@ -29,7 +29,7 @@ final class RepositoryRegenerator
         $interfaceNamespace = $classMetadata->name . 'Repository';
         $interfaceName = Str::getShortClassName($interfaceNamespace);
         $classMetadata->name = $classMetadata->customRepositoryClassName;
-        if (class_exists($classMetadata->name)) {
+        if (@class_exists($classMetadata->name)) {
             return;
         }
 
