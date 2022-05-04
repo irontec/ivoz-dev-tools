@@ -426,13 +426,11 @@ final class TraitManipulator implements ManipulatorInterface
         );
 
         // Getter
-        $returnHint = '@return ' . $typeHint . '[]';
-
-        $getterComments = [
-            'Get ' . $relation->getPropertyName(),
-            '@param Criteria | null $criteria',
-            $returnHint,
-        ];
+        $commentHint = sprintf(
+            'return array<array-key, %s>',
+            $typeHint,
+        );
+        $getterComments = [$commentHint];
 
         $this->addGetter(
             $relation->getPropertyName(),
