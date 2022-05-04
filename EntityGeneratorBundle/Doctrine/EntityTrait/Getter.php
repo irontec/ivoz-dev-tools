@@ -28,7 +28,11 @@ class Getter implements CodeGeneratorUnitInterface
     {
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
 
-        $response = [];
+        $response = ['/**'];
+        foreach ($this->comments as $comment) {
+            $response[] = ' * @' . $comment;
+        }
+        $response[] = ' */';
         $response[] = sprintf(
             'public function %s(Criteria $criteria = null): array',
             $methodName
@@ -42,7 +46,7 @@ class Getter implements CodeGeneratorUnitInterface
         $response[] = '}';
 
         return implode(
-            "\n". $nlLeftPad,
+            "\n" . $nlLeftPad,
             $response
         );
     }
