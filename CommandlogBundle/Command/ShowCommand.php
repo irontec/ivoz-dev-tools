@@ -86,6 +86,8 @@ class ShowCommand extends Command
             ->setRows($rows);
 
         $table->render();
+
+        return 0;
     }
 
     private function findEntityByTable(string $table)
