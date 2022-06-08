@@ -124,7 +124,7 @@ final class DtoManipulator implements ManipulatorInterface
 
         $nullable = $columnOptions['nullable'] ?? false;
 
-        if (in_array($typeHint, ['\\DateTime'], true)) {
+        if (in_array($typeHint, ['\\DateTime', '\\DateTimeInterface'], true)) {
             $typeHint = '\DateTimeInterface|string';
         }
 
@@ -336,7 +336,7 @@ final class DtoManipulator implements ManipulatorInterface
         $comments = [];
 
         $typeHint = $this->getEntityTypeHint($options['type']);
-        if (in_array($typeHint, ['\\DateTime'], true)) {
+        if (in_array($typeHint, ['\\DateTime', '\\DateTimeInterface'], true)) {
             $typeHint = '\DateTimeInterface|string';
         } else if ($typeHint === 'resource') {
             $typeHint = 'string';

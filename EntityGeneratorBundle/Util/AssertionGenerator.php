@@ -22,7 +22,7 @@ class AssertionGenerator
         $isNullable = isset($currentField->nullable) && $currentField->nullable;
         $assertions = [];
 
-        if (in_array($currentField->type, ['datetime'])) {
+        if (in_array($currentField->type, ['datetime', 'time', 'date'])) {
 
             $call = '';
             $varHint = $isNullable

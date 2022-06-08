@@ -132,7 +132,7 @@ final class EntityManipulator implements ManipulatorInterface
     {
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
-        if ($typeHint == '\\DateTime') {
+        if (in_array($typeHint, ['\\DateTime', '\\DateTimeInterface'], true)) {
             $this->addUseStatementIfNecessary(
                 'Ivoz\\Core\\Domain\\Model\\Helper\\DateTimeHelper'
             );
@@ -198,11 +198,6 @@ final class EntityManipulator implements ManipulatorInterface
 
         // don't generate setters for id fields
         if (!$isId) {
-
-            $paramDoc = '@param ' . $typeHint . ' $' . $propertyName;
-            if ($nullable) {
-                $paramDoc .= ' | null';
-            }
 
             $this->addSetter(
                 $propertyName,
@@ -800,6 +795,42 @@ final class EntityManipulator implements ManipulatorInterface
     {
         $src = [];
         $assertions = [];
+
+        foreach ($this->properties as $property) {
+            if (!($property instanceof EmbeddedProperty)) {
+                continue;
+            }
+
+            $embeddedFqdn =
+                $this->getNamespaceNode()->name->toCodeString()
+                . '\\'
+                . $property->getForeignKeyFqdn();
+
+            /** @var ClassMetadata $embeddedMetadata */
+            $embeddedMetadata = $this->doctrineHelper->getMetadata(
+                $embeddedFqdn
+            );
+
+            foreach ($embeddedMetadata->fieldMappings as $name => $details) {
+
+                if (array_key_exists('nullable', $details) && $details['nullable']) {
+                    continue;
+                }
+
+                $getter =
+                    'get'
+                    . Str::asCamelCase($property->getName())
+                    . Str::asCamelCase($name)
+                    . '()';
+
+                $assertions[] = sprintf(
+                    'Assertion::notNull($%s, \'%s value is null, but non null value was expected.\');',
+                    'dto->' . $getter,
+                    $property->getName() . Str::asCamelCase($name),
+                );
+            }
+        }
+
         foreach ($this->properties as $property) {
 
             if ($property instanceof EmbeddedProperty) {
