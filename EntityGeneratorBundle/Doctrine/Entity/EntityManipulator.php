@@ -823,9 +823,15 @@ final class EntityManipulator implements ManipulatorInterface
                     . Str::asCamelCase($name)
                     . '()';
 
+                $propertyName =
+                    '$'
+                    . $property->getName()
+                    . Str::asCamelCase($name);
+
+                $assertions[] = $propertyName . ' = $dto->' . $getter . ';';
                 $assertions[] = sprintf(
-                    'Assertion::notNull($%s, \'%s value is null, but non null value was expected.\');',
-                    'dto->' . $getter,
+                    'Assertion::notNull(%s, \'%s value is null, but non null value was expected.\');',
+                    $propertyName,
                     $property->getName() . Str::asCamelCase($name),
                 );
             }
@@ -928,18 +934,27 @@ final class EntityManipulator implements ManipulatorInterface
             $src[] = '$' . $property->getName() . ' = new '. ucfirst($property->getName()) . '(';
             $position = 1;
             foreach ($embeddedMetadata->fieldMappings as $name => $details) {
+                $varName =
+                    '$'
+                    . $property->getName()
+                    . Str::asCamelCase($name);
+
                 $getter =
-                    'get'
+                    '$dto->get'
                     . Str::asCamelCase($property->getName())
                     . Str::asCamelCase($name)
                     . '()';
 
+                $value = ($details['nullable'] ?? false) === false
+                    ? $varName
+                    : $getter;
+
                 if ($position < count($embeddedMetadata->fieldMappings)) {
-                    $getter .= ',';
+                    $value .= ',';
                     $position++;
                 }
 
-                $src[] = '    $dto->'. $getter;
+                $src[] = '    ' . $value;
             }
             $src[] = ');';
             $src[] = '';
@@ -999,7 +1014,7 @@ final class EntityManipulator implements ManipulatorInterface
             }
 
             $setter = 'set' . Str::asCamelCase($property->getName());
-            $getter = 'get' . Str::asCamelCase($property->getName());
+            $varName = 'get' . Str::asCamelCase($property->getName());
 
             if ($property->isRequired()) {
                 $stmt = $property->isForeignKey()
@@ -1007,8 +1022,8 @@ final class EntityManipulator implements ManipulatorInterface
                     : '->' . $setter . '($' . $property->getName() . ')';
             } else {
                 $stmt = $property->isForeignKey()
-                    ? '->' . $setter . '($fkTransformer->transform($dto->' . $getter . '()))'
-                    : '->' . $setter . '($dto->' . $getter . '())';
+                    ? '->' . $setter . '($fkTransformer->transform($dto->' . $varName . '()))'
+                    : '->' . $setter . '($dto->' . $varName . '())';
             }
 
             if (empty($src)) {
