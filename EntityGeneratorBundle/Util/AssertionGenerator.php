@@ -29,16 +29,19 @@ class AssertionGenerator
                 ? '?\Datetime'
                 : '\Datetime';
 
+            if (in_array($currentField->type, ['datetime', 'date'])) {
+                $call .= "\n"
+                    . '/** @var ' . $varHint . " */\n"
+                    . '$var = DateTimeHelper::createOrFix('
+                    . "\n$nlLeftPad"
+                    .'$var,'
+                    . "\n$nlLeftPad"
+                    . '$default'
+                    . "\n"
+                    . ');';
+            }
+            
             $call .= "\n"
-                . '/** @var ' . $varHint . " */\n"
-                . '$var = DateTimeHelper::createOrFix('
-                . "\n$nlLeftPad"
-                .'$var,'
-                . "\n$nlLeftPad"
-                . '$default'
-                . "\n"
-                . ');'
-                . "\n"
                 . "\n"
                 . 'if ($this->isInitialized() && $this->$fldName == $var) {'
                 . "\n"
