@@ -26,22 +26,36 @@ class AssertionGenerator
 
             $call = '';
             $varHint = $isNullable
-                ? '?\Datetime'
-                : '\Datetime';
+                ? '?\DateTime'
+                : '\DateTime';
 
-            if (in_array($currentField->type, ['datetime', 'date'])) {
-                $call .= "\n"
-                    . '/** @var ' . $varHint . " */\n"
-                    . '$var = DateTimeHelper::createOrFix('
+            $toDateTime = match(true) {
+                $currentField->type === 'datetime' =>
+                    '$var = DateTimeHelper::createOrFix('
                     . "\n$nlLeftPad"
                     .'$var,'
                     . "\n$nlLeftPad"
                     . '$default'
                     . "\n"
-                    . ');';
-            }
-            
+                    . ');',
+
+                $currentField->type ==='date' =>
+                    '$var = !($var instanceof \DateTimeInterface)'
+                    . "\n$nlLeftPad? " . '\DateTime::createFromFormat($var, \'Y-m-d\', new \DateTimeZone(\'UTC\'))'
+                    . "\n$nlLeftPad: " . '$var;',
+
+                $currentField->type ==='time' =>
+                    '$var = !($var instanceof \DateTimeInterface)'
+                    . "\n$nlLeftPad? " . '\DateTime::createFromFormat($var, \'H:i:s\', new \DateTimeZone(\'UTC\'))'
+                    . "\n$nlLeftPad: " . '$var;',
+
+                default => throw new \Exception('Unhandled type ' . $currentField->type)
+            };
+
             $call .= "\n"
+                . '/** @var ' . $varHint . " */\n"
+                . $toDateTime
+                . "\n"
                 . "\n"
                 . 'if ($this->isInitialized() && $this->$fldName == $var) {'
                 . "\n"
