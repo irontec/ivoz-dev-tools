@@ -88,31 +88,53 @@ class Replacer implements CodeGeneratorUnitInterface
     ): string
     {
         $template = <<<'TPL'
-    $updatedEntities = [];
-        $fallBackId = -1;
-        foreach ([PARAM_NAME] as $entity) {
-            /** @var string|int $index */
-            $index = $entity->getId() ? $entity->getId() : $fallBackId--;
-            $updatedEntities[$index] = $entity;
+    foreach ([PARAM_NAME] as $entity) {
             $entity->[MAPPED_BY]($this);
         }
 
+        $toStringCallable = fn(mixed $val): \Stringable|string => $val instanceof \Stringable ? $val : serialize($val);
         foreach ($this->[PROPERTY_NAME] as $key => $entity) {
-            $identity = $entity->getId();
-            if (!$identity) {
-                $this->[PROPERTY_NAME]->remove($key);
-                continue;
+            /**
+             * @psalm-suppress MixedArgument
+             */
+            $currentValue = array_map(
+                $toStringCallable,
+                (function (): array {
+                    return $this->__toArray(); /** @phpstan-ignore-line */
+                })->call($entity)
+            );
+
+            $match = false;
+            foreach ($[PROPERTY_NAME] as $newKey => $newEntity) {
+                /**
+                 * @psalm-suppress MixedArgument
+                 */
+                $newValue = array_map(
+                    $toStringCallable,
+                    (function (): array {
+                        return $this->__toArray(); /** @phpstan-ignore-line */
+                    })->call($newEntity)
+                );
+
+                $diff = array_diff_assoc(
+                    $currentValue,
+                    $newValue
+                );
+                unset($diff['id']);
+
+                if (empty($diff)) {
+                    unset($[PROPERTY_NAME][$newKey]);
+                    $match = true;
+                    break;
+                }
             }
 
-            if (array_key_exists($identity, $updatedEntities)) {
-                $this->[PROPERTY_NAME]->set($key, $updatedEntities[$identity]);
-                unset($updatedEntities[$identity]);
-            } else {
+            if (!$match) {
                 $this->[PROPERTY_NAME]->remove($key);
             }
         }
 
-        foreach ($updatedEntities as $entity) {
+        foreach ($[PROPERTY_NAME] as $entity) {
             $this->[ADDER]($entity);
         }
 
