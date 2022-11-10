@@ -7,6 +7,7 @@ trait EntityTypeTrait
     private function getEntityTypeHint($doctrineType)
     {
         switch ($doctrineType) {
+            case 'bigint':
             case 'string':
             case 'text':
             case 'guid':
@@ -23,7 +24,6 @@ trait EntityTypeTrait
             case 'boolean':
                 return 'bool';
 
-            case 'bigint':
             case 'integer':
             case 'smallint':
                 return 'int';
