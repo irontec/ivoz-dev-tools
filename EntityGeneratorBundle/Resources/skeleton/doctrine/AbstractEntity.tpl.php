@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace <?= $namespace ?>;
 
 use Assert\Assertion;
-use Ivoz\Core\Application\DataTransferObjectInterface;
+use Ivoz\Core\Domain\\DataTransferObjectInterface;
 use Ivoz\Core\Domain\Model\ChangelogTrait;
 use Ivoz\Core\Domain\Model\EntityInterface;
-use Ivoz\Core\Application\ForeignKeyTransformerInterface;
+use Ivoz\Core\Domain\\ForeignKeyTransformerInterface;
 /*__class_use_statements*/
 /**
 * <?= $class_name ."\n" ?>
