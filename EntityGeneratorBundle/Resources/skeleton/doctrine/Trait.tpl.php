@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace <?= $namespace ?>;
 
-use Ivoz\Core\Domain\\DataTransferObjectInterface;
-use Ivoz\Core\Domain\\ForeignKeyTransformerInterface;
+use Ivoz\Core\Domain\DataTransferObjectInterface;
+use Ivoz\Core\Domain\ForeignKeyTransformerInterface;
 /*__class_use_statements*/
 
 /**
