@@ -422,9 +422,27 @@ final class ValueObjectManipulator implements ManipulatorInterface
     {
         $src = [];
         foreach ($this->properties as $property) {
-            $src[] = $property instanceof EmbeddedProperty
+            $value = $property instanceof EmbeddedProperty
                 ? $property->getForeignKeyFqdn() . ' $' . $property->getName()
                 : $property->getHint() . ' $' . $property->getName();
+
+            $defaultValue = $property->getDefaultValue();
+            if ($defaultValue !== null) {
+                switch (gettype($defaultValue)) {
+                    case 'string':
+                        $value .= $defaultValue
+                            ? " = '" . $defaultValue . "'"
+                            : " = ''";
+                        break;
+                    case 'integer':
+                        $value .= ' = ' . $defaultValue;
+                    case 'array':
+                        $value .= ' = ' . var_export($defaultValue, true);
+                    default:
+                }
+            }
+
+            $src[] = $value;
         }
         $srcStr = implode(",\n" . str_repeat($leftPad, 2), $src);
 

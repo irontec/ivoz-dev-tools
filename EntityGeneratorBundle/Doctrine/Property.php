@@ -97,6 +97,11 @@ class Property implements CodeGeneratorUnitInterface
         return $this->comments;
     }
 
+    public function getDefaultValue()
+    {
+        return $this->defaultValue;
+    }
+
     public function toString(string $nlLeftPad = ''): string
     {
         $response = [];
