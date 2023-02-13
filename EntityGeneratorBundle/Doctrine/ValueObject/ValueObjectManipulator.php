@@ -437,7 +437,9 @@ final class ValueObjectManipulator implements ManipulatorInterface
                     case 'integer':
                         $value .= ' = ' . $defaultValue;
                     case 'array':
-                        $value .= ' = ' . var_export($defaultValue, true);
+                        if (empty($defaultValue)) {
+                            $value .= ' = []';
+                        }
                     default:
                 }
             }
