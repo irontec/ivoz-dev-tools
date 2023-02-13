@@ -106,6 +106,10 @@ final class ValueObjectRegenerator
             array_keys($classMetadata->associationMappings)
         );
 
+        if (!$classReflection) {
+            return $targetFields;
+        }
+
         // exclude traits
         $traitProperties = [];
 
