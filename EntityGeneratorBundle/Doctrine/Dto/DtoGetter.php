@@ -36,6 +36,22 @@ class DtoGetter implements CodeGeneratorUnitInterface
         }
 
         $response = [];
+        if ($this->returnType === 'array') {
+            $response[] = '/**';
+            foreach ($this->comments as $comment) {
+                if (str_contains($comment, '@return array')) {
+                    continue;
+                }
+                $response[] = '* ' . $comment;
+            }
+
+            if (end($response) === '/**') {
+                array_pop($response);
+            } else {
+                $response[] = '*/';
+            }
+        }
+
         $response[] = sprintf(
             'public function %s()%s',
             $methodName,
