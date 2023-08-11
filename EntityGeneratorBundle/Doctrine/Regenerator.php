@@ -7,6 +7,7 @@ use Doctrine\Persistence\Mapping\MappingException as LegacyCommonMappingExceptio
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\MappingException;
 use Doctrine\Persistence\Mapping\MappingException as PersistenceMappingException;
+use Ivoz\Core\Domain\Model\SelfManagedInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Dto\DtoRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Entity\EntityRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityInterface\InterfaceRegenerator;
@@ -78,6 +79,21 @@ final class Regenerator
         $classMetadata = $this->getMetadata($classOrNamespace);
         $isMappedSuperclass = $classMetadata->isMappedSuperclass;
         $isEmbeddedClass = $classMetadata->isEmbeddedClass;
+
+        if (class_exists($classOrNamespace)) {
+            $implementedInterfaces = class_implements(
+                $classOrNamespace
+            );
+
+            $selfManaged = in_array(
+                SelfManagedInterface::class,
+                $implementedInterfaces
+            );
+
+            if ($selfManaged) {
+                return;
+            }
+        }
 
         if ($isEmbeddedClass) {
             $this->voRegenerator->makeValueObject(

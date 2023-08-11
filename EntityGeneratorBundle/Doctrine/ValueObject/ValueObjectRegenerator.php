@@ -5,7 +5,6 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine\ValueObject;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Generator;
-use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\FileManager;
 
 /**
