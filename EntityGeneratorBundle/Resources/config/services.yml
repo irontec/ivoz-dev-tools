@@ -15,6 +15,10 @@ services:
       $namespacePrefix: ''
       $autoloaderUtil: '@Symfony\Bundle\MakerBundle\Util\AutoloaderUtil'
 
+  IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator:
+    arguments:
+      $fileManager: '@maker.file_manager'
+
   IvozDevTools\EntityGeneratorBundle\Maker\MakeEntities:
     arguments:
       $fileManager: '@maker.file_manager'
@@ -59,6 +63,28 @@ services:
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [{ name: 'console.command', command: 'provider:make:entities' }]
 
+  IvozDevTools\EntityGeneratorBundle\Maker\MakeOrmMapping:
+    arguments:
+      $fileManager: '@maker.file_manager'
+      $doctrineHelper: '@maker.doctrine_helper'
+      $mappingGenerator: '@IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator'
+
+  IvozDevTools\EntityGeneratorBundle\Command\MakeOrmMappingCommand:
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeOrmMapping'
+      $fileManager: '@maker.file_manager'
+      $mappingGenerator: '@IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator'
+    tags: [ { name: 'console.command' } ]
+
+  provider.make.orm.entity:
+    deprecated: "%service_id% is deprecated: use ivoz:make:orm:mapping instead"
+    class: IvozDevTools\EntityGeneratorBundle\Command\MakeOrmMappingCommand
+    arguments:
+      $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeOrmMapping'
+      $fileManager: '@maker.file_manager'
+      $mappingGenerator: '@IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator'
+    tags: [ { name: 'console.command', command: 'provider:make:orm:mapping' } ]
+    
   #    REPOSITORY SERVICE
   IvozDevTools\EntityGeneratorBundle\Maker\MakeRepositories:
     arguments:
