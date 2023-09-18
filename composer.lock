@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9b16f52f046053c91b6bc068a42d8594",
+    "content-hash": "8231458871617d4adcd2b702d2d9a6d9",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -1970,16 +1970,16 @@
         },
         {
             "name": "irontec/ivoz-core",
-            "version": "4.16.5",
+            "version": "4.16.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/irontec/ivoz-core.git",
-                "reference": "21ee5d70989245f08a784f8f0889b994da463a24"
+                "reference": "b1198e676ba00c5361961ff1d2666fe63f9bc3f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/irontec/ivoz-core/zipball/21ee5d70989245f08a784f8f0889b994da463a24",
-                "reference": "21ee5d70989245f08a784f8f0889b994da463a24",
+                "url": "https://api.github.com/repos/irontec/ivoz-core/zipball/b1198e676ba00c5361961ff1d2666fe63f9bc3f1",
+                "reference": "b1198e676ba00c5361961ff1d2666fe63f9bc3f1",
                 "shasum": ""
             },
             "require": {
@@ -2048,9 +2048,9 @@
             "description": "Core library for ivozprovider",
             "support": {
                 "issues": "https://github.com/irontec/ivoz-core/issues",
-                "source": "https://github.com/irontec/ivoz-core/tree/4.16.5"
+                "source": "https://github.com/irontec/ivoz-core/tree/4.16.7"
             },
-            "time": "2023-02-13T13:31:54+00:00"
+            "time": "2023-08-11T09:48:39+00:00"
         },
         {
             "name": "laminas/laminas-code",
@@ -6729,8 +6729,5 @@
         "php": ">=8.0"
     },
     "platform-dev": [],
-    "platform-overrides": {
-        "php": "8.0"
-    },
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.3.0"
 }
