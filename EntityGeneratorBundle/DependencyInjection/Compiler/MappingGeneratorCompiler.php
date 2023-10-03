@@ -44,7 +44,23 @@ class MappingGeneratorCompiler implements CompilerPassInterface
             }
 
             if (strpos($key, 'drivers') !== false) {
-                $paths = array_values($doctrine[$key]['xml']);
+                
+                $xmlPaths = [];
+                if (array_key_exists('xml', $doctrine[$key])) {
+                    $xmlPaths = array_values($doctrine[$key]['xml']);
+                }
+
+                $annotationPaths = [];
+                if (array_key_exists('annotation', $doctrine[$key])) {
+                    $annotationPaths = array_values($doctrine[$key]['annotation']);
+                }
+
+                $phpPaths = [];
+                if (array_key_exists('php', $doctrine[$key])) {
+                    $phpPaths = array_values($doctrine[$key]['php']);
+                }
+
+                $paths = array_merge($xmlPaths, $annotationPaths, $phpPaths);
                 continue;
             }
         }
