@@ -672,7 +672,7 @@ TPL;
             $classMetadata->associationMappings,
             function ($property) {
                 return in_array(
-                    $property['type'] ?? null,
+                    $property['type'],
                     [
                         ClassMetadata::ONE_TO_MANY,
                         ClassMetadata::MANY_TO_MANY

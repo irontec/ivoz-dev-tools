@@ -115,7 +115,7 @@ final class TraitRegenerator
             $classMetadata->associationMappings,
             function ($mapping) {
                 return in_array(
-                    $mapping['type'] ?? null,
+                    $mapping['type'],
                     [
                         ClassMetadata::ONE_TO_ONE,
                         ClassMetadata::ONE_TO_MANY,

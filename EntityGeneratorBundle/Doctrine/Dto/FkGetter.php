@@ -10,11 +10,18 @@ class FkGetter extends Getter
     public function toString(string $nlLeftPad = ''): string
     {
         $methodName = 'get' . Str::asCamelCase($this->propertyName);
+        $returnHint = '';
+        if ($this->returnType && strpos($this->returnType, '|')) {
+            $returnHint = ': ' . $this->returnType . '|null';
+        } elseif ($this->returnType) {
+            $returnHint = ': ?' . $this->returnType;
+        }
 
         $response = [];
         $response[] = sprintf(
-            'public function %sId()',
-            $methodName
+            'public function %sId()%s',
+            $methodName,
+            $returnHint
         );
         $response[] = '{';
         $response[] = '    if ($dto = $this->' . $methodName . '()) {';

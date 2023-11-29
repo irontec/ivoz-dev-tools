@@ -74,13 +74,18 @@ final class RepositoryRegenerator
             return;
         }
 
+        $entityClassNameSegments = explode("\\", $classMetadata->name);
+        $entityClassName = end($entityClassNameSegments);
+
         $classMetadata->name = $fqdn;
         $classMetadata->rootEntityName = $fqdn;
 
         [$classPath, $content] = $this->getDoctrineClassTemplate(
             $classMetadata,
             'doctrine/RepositoryInterface.tpl.php',
-            []
+            [
+                'entity_classname' => $entityClassName
+            ]
         );
 
         $manipulator = $this->createClassManipulator(
@@ -139,38 +144,6 @@ final class RepositoryRegenerator
             )
         ];
     }
-
-    private function getClassTemplate(
-        ClassMetadata $metadata,
-                      $templateName
-    ): array
-    {
-        [$path, $variables] = $this->generator->generateClassContentVariables(
-            $metadata->name,
-            $templateName,
-            []
-        );
-
-        if (file_exists($variables['relative_path'])) {
-            $variables['relative_path'] = realpath($variables['relative_path']);
-        } else {
-            $variables['relative_path'] = str_replace(
-                'vendor/composer/../../',
-                '',
-                $variables['relative_path']
-            );
-        }
-
-
-        return [
-            $variables['relative_path'],
-            $this->fileManager->parseTemplate(
-                $path,
-                $variables
-            )
-        ];
-    }
-
 
     private function createClassManipulator(
         string  $classPath,

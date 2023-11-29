@@ -4,6 +4,7 @@ namespace IvozDevTools\EntityGeneratorBundle\Doctrine;
 
 class Property implements CodeGeneratorUnitInterface
 {
+    /** @var mixed | null */
     private $defaultValue;
 
     public function __construct(
@@ -130,7 +131,7 @@ class Property implements CodeGeneratorUnitInterface
                             : 'false';
                         break;
                     case 'string':
-                        if (!is_null($this->defaultValue)) {
+                        if (!empty($this->defaultValue)) {
                             $defaultValue = '\'' . $this->defaultValue . '\'';
                         }
                         break;
