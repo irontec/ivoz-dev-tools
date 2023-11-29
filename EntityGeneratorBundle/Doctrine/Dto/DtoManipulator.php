@@ -17,6 +17,7 @@ use PhpParser\NodeVisitor;
 use PhpParser\Parser;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseCollectionRelation;
 use Symfony\Bundle\MakerBundle\Doctrine\BaseSingleRelation;
+use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToMany;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationManyToOne;
 use Symfony\Bundle\MakerBundle\Doctrine\RelationOneToMany;
@@ -49,8 +50,10 @@ final class DtoManipulator implements ManipulatorInterface
     /** @var UseStatement[]  */
     private $useStatements = [];
 
-    public function __construct(string $sourceCode)
-    {
+    public function __construct(
+        string $sourceCode,
+        private DoctrineHelper $doctrineHelper,
+    ) {
         $this->lexer = new Lexer\Emulative([
             'usedAttributes' => [
                 'comments',
@@ -418,9 +421,25 @@ final class DtoManipulator implements ManipulatorInterface
             $classMetadata,
         );
 
+        $targetClassName = substr(
+            $relation->getTargetClassName(),
+            0,
+            -3
+        );
+
+        /** @var \IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata\ClassMetadata $targetClassMetadata */
+        $targetClassMetadata = $this->doctrineHelper->getMetadata($targetClassName);
+        $identifier = $targetClassMetadata->getIdentifier();
+        $targetPkField = $targetClassMetadata->getFieldMapping(
+            current($identifier)
+        );
+        $targetPkHint = $this->getEntityTypeHint(
+            $targetPkField["type"]
+        );
+
         $this->addIdGetter(
             $relation->getPropertyName(),
-            $relation->getCustomReturnType() ?: $typeHint,
+            $relation->getCustomReturnType() ?: $targetPkHint,
             true,
             []
         );

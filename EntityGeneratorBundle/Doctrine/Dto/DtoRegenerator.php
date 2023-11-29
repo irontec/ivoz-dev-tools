@@ -162,7 +162,8 @@ final class DtoRegenerator
     {
         $classContent = $content ?? $this->fileManager->getFileContents($classPath);
         return new DtoManipulator(
-            $classContent
+            $classContent,
+            $this->doctrineHelper
         );
     }
 
