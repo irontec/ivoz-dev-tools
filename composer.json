@@ -28,7 +28,7 @@
         "doctrine/orm": "^2.5",
         "doctrine/doctrine-bundle": "^2.0",
         "symfony/console": "^5.1",
-        "symfony/maker-bundle": "^1.33",
+        "symfony/maker-bundle": "<=1.38",
         "irontec/ivoz-core": "^4.17.0"
     },
     "require-dev": {
