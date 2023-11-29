@@ -2,9 +2,11 @@
 
 namespace <?= $namespace ?>;
 
-use Doctrine\Common\Collections\Selectable;
-use Doctrine\Persistence\ObjectRepository;
+use Ivoz\Core\Domain\Service\Repository\RepositoryInterface;
 
-interface <?= $class_name  ?> extends ObjectRepository, Selectable
+/**
+ * @extends RepositoryInterface<<?= $entity_classname  ?>Interface, <?= $entity_classname  ?>Dto>
+ */
+interface <?= $entity_classname  ?> extends RepositoryInterface
 {
 }

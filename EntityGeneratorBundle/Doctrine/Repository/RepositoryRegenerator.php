@@ -74,13 +74,18 @@ final class RepositoryRegenerator
             return;
         }
 
+        $entityClassNameSegments = explode("\\", $classMetadata->name);
+        $entityClassName = end($entityClassNameSegments);
+
         $classMetadata->name = $fqdn;
         $classMetadata->rootEntityName = $fqdn;
 
         [$classPath, $content] = $this->getDoctrineClassTemplate(
             $classMetadata,
             'doctrine/RepositoryInterface.tpl.php',
-            []
+            [
+                'entity_classname' => $entityClassName
+            ]
         );
 
         $manipulator = $this->createClassManipulator(
