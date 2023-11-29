@@ -131,9 +131,7 @@ class Property implements CodeGeneratorUnitInterface
                             : 'false';
                         break;
                     case 'string':
-                        if (!empty($this->defaultValue)) {
-                            $defaultValue = '\'' . $this->defaultValue . '\'';
-                        }
+                        $defaultValue = '\'' . $this->defaultValue . '\'';
                         break;
                     default:
                         $defaultValue = !is_null($this->defaultValue)
