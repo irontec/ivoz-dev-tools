@@ -145,38 +145,6 @@ final class RepositoryRegenerator
         ];
     }
 
-    private function getClassTemplate(
-        ClassMetadata $metadata,
-                      $templateName
-    ): array
-    {
-        [$path, $variables] = $this->generator->generateClassContentVariables(
-            $metadata->name,
-            $templateName,
-            []
-        );
-
-        if (file_exists($variables['relative_path'])) {
-            $variables['relative_path'] = realpath($variables['relative_path']);
-        } else {
-            $variables['relative_path'] = str_replace(
-                'vendor/composer/../../',
-                '',
-                $variables['relative_path']
-            );
-        }
-
-
-        return [
-            $variables['relative_path'],
-            $this->fileManager->parseTemplate(
-                $path,
-                $variables
-            )
-        ];
-    }
-
-
     private function createClassManipulator(
         string  $classPath,
         ?string $content
