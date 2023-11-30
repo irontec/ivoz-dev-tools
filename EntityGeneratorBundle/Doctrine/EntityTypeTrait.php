@@ -2,8 +2,26 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine;
 
+use Doctrine\ORM\Mapping\ClassMetadata;
+
 trait EntityTypeTrait
 {
+    private function getEntityTypeHintByMetadata(ClassMetadata $metadata)
+    {
+        $identifier = $metadata->getIdentifier();
+        if (empty($identifier)) {
+            return null;
+        }
+
+        $pkField = $metadata->getFieldMapping(
+            current($identifier)
+        );
+
+        return $this->getEntityTypeHint(
+            $pkField["type"]
+        );
+    }
+
     private function getEntityTypeHint($doctrineType)
     {
         switch ($doctrineType) {

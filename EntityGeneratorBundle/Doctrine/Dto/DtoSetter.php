@@ -7,34 +7,27 @@ use Symfony\Bundle\MakerBundle\Str;
 
 class DtoSetter implements CodeGeneratorUnitInterface
 {
-    protected $propertyName;
-    protected $type;
-    protected $isNullable;
-    protected $comments = [];
-    protected $columnOptions = [];
-    protected $classMetadata;
-    protected $visibility;
-
     public function __construct(
-        string $propertyName,
-        ?string $type,
-        bool $isNullable,
-        $classMetadata,
-        array $commentLines = [],
-        array $columnOptions = [],
-        string $visibility = 'protected'
+        private string $propertyName,
+        private ?string $type,
+        private bool $isNullable,
+        private array $comments = [],
+        private string $visibility = 'protected'
     ) {
-        $this->propertyName = $propertyName;
-        $this->type = $type;
-        $this->isNullable = $isNullable;
-        $this->comments = $commentLines;
-        $this->columnOptions = $columnOptions;
-        $this->classMetadata = $classMetadata;
-        $this->visibility = $visibility;
     }
 
     public function toString(string $nlLeftPad = ''): string
     {
+        $response = [];
+        $showComments = is_null($this->type) || $this->type === 'array';
+        if (count($this->comments) && $showComments) {
+            $response = ['/**'];
+            foreach ($this->comments as $comment) {
+                $response[] = ' * ' . $comment;
+            }
+            $response[] = ' */';
+        }
+
         if ($this->isNullable && $this->type) {
             $typeHint = strpos($this->type, '|') !== false
                 ? 'null|' . $this->type
@@ -48,8 +41,6 @@ class DtoSetter implements CodeGeneratorUnitInterface
         }
 
         $methodName = 'set' . Str::asCamelCase($this->propertyName);
-
-        $response = [];
         $response[] = sprintf(
             '%s function %s(%s%s): %s',
             $this->visibility,

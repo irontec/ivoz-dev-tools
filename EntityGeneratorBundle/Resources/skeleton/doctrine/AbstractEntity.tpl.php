@@ -47,7 +47,10 @@ abstract class <?= $class_name."\n" ?>
     {
     }
 
-    public static function createDto(string|int|null $id = null): <?= $parent_class_name ?>Dto
+    /**
+     * @param <?= $pk_type_hint ?> | null $id
+     */
+    public static function createDto($id = null): <?= $parent_class_name ?>Dto
     {
         return new <?= $parent_class_name ?>Dto($id);
     }

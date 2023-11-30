@@ -3,6 +3,7 @@
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Dto;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Generator;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
@@ -18,6 +19,8 @@ use Symfony\Bundle\MakerBundle\Str;
  */
 final class DtoRegenerator
 {
+    use EntityTypeTrait;
+
     private $fileManager;
     private $generator;
     private $doctrineHelper;
@@ -145,6 +148,10 @@ final class DtoRegenerator
                 $variables['relative_path']
             );
         }
+
+        $variables['pk_type_hint'] = $this->getEntityTypeHintByMetadata(
+            $metadata
+        );
 
         return [
             $variables['relative_path'],

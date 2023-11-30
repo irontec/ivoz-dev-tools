@@ -162,7 +162,7 @@ final class DtoManipulator implements ManipulatorInterface
             $embedded
         );
 
-        if ($nullable) {
+        if ($nullable || $isPk) {
             $paramDoc = '@param ' . $typeHint . '|null $' . $propertyName;
         } else {
             $paramDoc = '@param ' . $typeHint . ' $' . $propertyName;
@@ -269,16 +269,15 @@ final class DtoManipulator implements ManipulatorInterface
             $propertyName,
             $type,
             $isNullable,
-            $classMetadata,
             $commentLines,
-            $columnOptions,
             $visibility
         );
     }
 
     public function addIdSetter(
         string $propertyName,
-        $type,
+        $targetClass,
+        $hint,
         bool $isNullable,
         $classMetadata,
         array $commentLines = [],
@@ -287,11 +286,8 @@ final class DtoManipulator implements ManipulatorInterface
     ) {
         $this->methods[] = new FkSetter(
             $propertyName,
-            $type,
-            $isNullable,
-            $classMetadata,
-            $commentLines,
-            $columnOptions,
+            $targetClass,
+            $hint,
             $visibility
         );
     }
@@ -414,12 +410,6 @@ final class DtoManipulator implements ManipulatorInterface
         );
 
         ////
-        $this->addIdSetter(
-            $relation->getPropertyName(),
-            $typeHint,
-            true,
-            $classMetadata,
-        );
 
         $targetClassName = substr(
             $relation->getTargetClassName(),
@@ -435,6 +425,14 @@ final class DtoManipulator implements ManipulatorInterface
         );
         $targetPkHint = $this->getEntityTypeHint(
             $targetPkField["type"]
+        );
+
+        $this->addIdSetter(
+            $relation->getPropertyName(),
+            $typeHint,
+            $targetPkHint,
+            true,
+            $classMetadata,
         );
 
         $this->addIdGetter(
@@ -474,7 +472,7 @@ final class DtoManipulator implements ManipulatorInterface
         );
 
         // Setter
-        $setterHint = '@param ' . $typeHint .  '[] | null';
+        $setterHint = '@param ' . $typeHint .  '[] | null $' . $relation->getPropertyName();
 
         $setterComments = [
             $setterHint,

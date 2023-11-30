@@ -3,6 +3,7 @@
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Entity;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTypeTrait;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Generator;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
@@ -15,6 +16,8 @@ use Symfony\Bundle\MakerBundle\FileManager;
  */
 final class EntityRegenerator
 {
+    use EntityTypeTrait;
+
     private $fileManager;
     private $generator;
     private $doctrineHelper;
@@ -29,11 +32,12 @@ final class EntityRegenerator
         $this->doctrineHelper = $doctrineHelper;
     }
 
-    public function makeAbstractEntity($classMetadata)
+    public function makeAbstractEntity($classMetadata, $parentMetadata)
     {
         [$classPath, $content] = $this->getClassTemplate(
             $classMetadata,
-            'doctrine/AbstractEntity.tpl.php'
+            'doctrine/AbstractEntity.tpl.php',
+            $parentMetadata,
         );
 
         $manipulator = $this->createClassManipulator(
@@ -44,28 +48,6 @@ final class EntityRegenerator
         $this->addMethods(
             $manipulator,
             $classMetadata
-        );
-
-        $this->dumpFile(
-            $classPath,
-            $manipulator
-        );
-    }
-
-    public function makeEmptyInterface($classMetadata)
-    {
-        if (class_exists($classMetadata->name)) {
-            return;
-        }
-
-        [$classPath, $content] = $this->getClassTemplate(
-            $classMetadata,
-            'doctrine/EntityInterface.tpl.php'
-        );
-
-        $manipulator = $this->createClassManipulator(
-            $classPath,
-            $content
         );
 
         $this->dumpFile(
@@ -108,7 +90,8 @@ final class EntityRegenerator
 
     private function getClassTemplate(
         ClassMetadata $metadata,
-        $templateName
+        $templateName,
+        ClassMetadata $parentMetadata = null,
     ): array
     {
         [$path, $variables] = $this->generator->generateClassContentVariables(
@@ -126,6 +109,11 @@ final class EntityRegenerator
                 $variables['relative_path']
             );
         }
+
+        $pkTypeHint = $this->getEntityTypeHintByMetadata(
+            $parentMetadata ?? $metadata
+        );
+        $variables['pk_type_hint'] = $pkTypeHint ?? 'int';
 
         return [
             $variables['relative_path'],
