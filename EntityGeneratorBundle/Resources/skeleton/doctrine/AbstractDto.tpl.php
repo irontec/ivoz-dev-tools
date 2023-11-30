@@ -15,10 +15,7 @@ abstract class <?= $class_name." implements DataTransferObjectInterface\n" ?>
 
     /*__dto_attributes*/
 
-    /**
-     * @param string|int|null $id
-     */
-    public function __construct($id = null)
+    public function __construct(?<?= $pk_type_hint ?> $id = null)
     {
         $this->setId($id);
     }

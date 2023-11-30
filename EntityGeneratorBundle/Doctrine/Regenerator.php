@@ -100,7 +100,12 @@ final class Regenerator
                 $classMetadata
             );
         } elseif ($isMappedSuperclass) {
-            $this->entityRegenerator->makeAbstractEntity($classMetadata);
+
+            try {
+                $parentMetadata = $this->getMetadata(substr($classOrNamespace, 0, strlen('Abstract') * -1));
+            } catch (\Exception $e) {}
+
+            $this->entityRegenerator->makeAbstractEntity($classMetadata, $parentMetadata ?? null);
             $this->dtoRegenerator->makeAbstractDto($classMetadata);
         } else {
             $this->interfaceRegenerator->makeEmptyInterface($classMetadata);
