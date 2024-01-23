@@ -3,12 +3,15 @@
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\Generator;
 
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedEntityRelation;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\RequestedProperty;
 
 class RelationsGenerator
 {
-    public function __construct()
-    {
+    public function __construct(
+        private MappingGenerator $generator,
+        private string $mappingName
+    ) {
     }
 
     /**
@@ -20,17 +23,21 @@ class RelationsGenerator
         foreach ($data as $field) {
             $relation = $field->getRelation();
 
+            $inverseClass = $relation->getInverseClass();
+            $inverseClassSegments = explode("\\", $inverseClass);
+            $className = end($inverseClassSegments);
+
+            $inverseRelation = sprintf(
+                '%s\\%sInterface',
+                $inverseClass,
+                $className
+            );
+
             switch ($relation->getType()) {
                 case MappedEntityRelation::MANY_TO_ONE:
                     /** @var \SimpleXMLElement $manyToOne */
                     $manyToOne = $mappedSuperClass->addChild('many-to-one');
 
-                    $inversedEntityName = ucfirst($relation->getOwningProperty());
-                    $inverseRelation = sprintf(
-                        '%s\\%sInterface',
-                        $relation->getInverseClass(),
-                        $inversedEntityName
-                    );
                     $manyToOne->addAttribute('field', $field->getFieldName());
                     $manyToOne->addAttribute('target-entity', $inverseRelation);
                     $manyToOne->addAttribute('fetch', $field->getFetch());
@@ -57,12 +64,6 @@ class RelationsGenerator
                     /** @var \SimpleXMLElement $oneToMany */
                     $oneToMany = $mappedSuperClass->addChild('one-to-many');
 
-                    $inversedEntityName = ucfirst($relation->getOwningProperty());
-                    $inverseRelation = sprintf(
-                        '%s\\%sInterface',
-                        $relation->getInverseClass(),
-                        $inversedEntityName
-                    );
                     $oneToMany->addAttribute('field', $field->getFieldName());
                     $oneToMany->addAttribute('target-entity', $inverseRelation);
                     $oneToMany->addAttribute('fetch', $field->getFetch());
@@ -88,13 +89,6 @@ class RelationsGenerator
                 case MappedEntityRelation::ONE_TO_ONE:
                     /** @var \SimpleXMLElement $oneToOne */
                     $oneToOne = $mappedSuperClass->addChild('one-to-one');
-
-                    $inversedEntityName = ucfirst($relation->getOwningProperty());
-                    $inverseRelation = sprintf(
-                        '%s\\%sInterface',
-                        $relation->getInverseClass(),
-                        $inversedEntityName
-                    );
 
                     $oneToOne->addAttribute('field', $field->getFieldName());
                     $oneToOne->addAttribute('target-entity', $inverseRelation);
@@ -129,40 +123,51 @@ class RelationsGenerator
         MappedEntityRelation $relation,
         string               $fetch
     ) {
-        throw new \Exception("TODO");
-//        $mappingPaths = $this->generator->getMappingsPath();
-//        $owningClass = $relation->getOwningClass();
-//        $inverseProperty = $relation->getInverseProperty();
-//        $owningProperty = $relation->getOwningProperty();
-//
-//        $output = sprintf(
-//            '%s/%s.%s.orm.xml',
-//            $mappingPaths[$relation->getInversedProjectName()],
-//            ucfirst($owningProperty),
-//            ucfirst($owningProperty)
-//        );
-//
-//        $xml = $this->generator
-//            ->readXmlFile($output);
-//        $aliasMappingPaths = $this->generator->getAliasMappingPaths();
-//        $targetEntity = sprintf(
-//            '%s\\%s\\%sInterface',
-//            $aliasMappingPaths[$this->mappingName],
-//            $owningClass,
-//            $owningClass
-//        );
-//
-//        $entity = $xml->{'entity'};
-//        $oneToMany = $entity->addChild('one-to-many');
-//        $oneToMany->addAttribute('field', $inverseProperty);
-//        $oneToMany->addAttribute('target-entity', $targetEntity);
-//        $oneToMany->addAttribute('mapped-by', $owningProperty);
-//        $oneToMany->addAttribute('fetch', $fetch);
-//
-//        $this->generator->generateXml(
-//            $xml,
-//            $output
-//        );
+        $mappingPaths = $this->generator->getMappingsPath();
+        $owningClass = $relation->getOwningClass();
+        $inverseClass = $relation->getInverseClass();
+        $inverseProperty = $relation->getInverseProperty();
+        $owningProperty = $relation->getOwningProperty();
+
+        $inverseClassSegments = explode(
+            "\\",
+            $inverseClass
+        );
+
+        $output = sprintf(
+            '%s/%s.%s.orm.xml',
+            $mappingPaths[$relation->getInversedProjectName()],
+            end($inverseClassSegments),
+            end($inverseClassSegments),
+        );
+
+        $xml = $this
+            ->generator
+            ->readXmlFile($output);
+
+        if (!$xml) {
+            throw new \Exception("File not found " . $output);
+        }
+
+        $aliasMappingPaths = $this->generator->getAliasMappingPaths();
+        $targetEntity = sprintf(
+            '%s\\%s\\%sInterface',
+            $aliasMappingPaths[$this->mappingName],
+            $owningClass,
+            $owningClass
+        );
+
+        $entity = $xml->{'entity'};
+        $oneToMany = $entity->addChild('one-to-many');
+        $oneToMany->addAttribute('field', $inverseProperty);
+        $oneToMany->addAttribute('target-entity', $targetEntity);
+        $oneToMany->addAttribute('mapped-by', $owningProperty);
+        $oneToMany->addAttribute('fetch', $fetch);
+
+        $this->generator->generateXml(
+            $xml,
+            $output
+        );
     }
 
 }

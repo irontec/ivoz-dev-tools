@@ -2,9 +2,13 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Maker;
 
+use Doctrine\DBAL\Types\Type;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\Manipulator\DumpXmlAttributes;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\Manipulator\GetFields;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedEntityRelation;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedPaths;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\RequestedProperty;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
@@ -19,12 +23,6 @@ use Symfony\Bundle\MakerBundle\Validator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Doctrine\DBAL\Types\Type;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedEntityRelation;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedPaths;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingManipulator;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\RequestedProperty;
-
 use Symfony\Component\Console\Question\Question;
 
 final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInterface
@@ -136,14 +134,19 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             ]);
         }
 
-        $this->updateMappedClass($io, $mappingName, $entityName, $mappedPaths);
+        $this->updateMappedClass(
+            $io,
+            $mappingName,
+            $entityName,
+            $mappedPaths
+        );
     }
 
     private function updateMappedClass(
         ConsoleStyle $io,
-        string       $mappingName,
-        string       $entityName,
-        MappedPaths  $paths
+        string $mappingName,
+        string $entityName,
+        MappedPaths $paths
     ): void
     {
         $fieldsManipulator = new GetFields(
@@ -162,9 +165,11 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             /** @var RequestedProperty[] $newFields */
             $newFields[] = $newField;
         }
+
         $xmlManipulator = new DumpXmlAttributes(
             generator: $this->generator,
             paths: $paths,
+            mappingName: $mappingName
         );
 
         $xmlManipulator->execute($newFields);
@@ -701,9 +706,9 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             ],
             'relation' => [
                 'relation' => 'a ' . $wizard . ' will help you build the relation',
-                MappedEntityRelation::MANY_TO_ONE => [],
-                MappedEntityRelation::ONE_TO_MANY => [],
-                MappedEntityRelation::ONE_TO_ONE => [],
+//                MappedEntityRelation::MANY_TO_ONE => [],
+//                MappedEntityRelation::ONE_TO_MANY => [],
+//                MappedEntityRelation::ONE_TO_ONE => [],
             ],
             'constraint' => [
                 'unique_constraint' => [],
