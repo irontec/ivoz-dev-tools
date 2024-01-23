@@ -3,7 +3,6 @@
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping;
 
 use SimpleXMLElement;
-use Symfony\Bundle\MakerBundle\Doctrine\EntityRelation;
 
 class MappingManipulator
 {
@@ -260,7 +259,6 @@ class MappingManipulator
         string $fetch
     ) {
         $mappingPaths = $this->generator->getMappingsPath();
-        $owningProperty = $relation->getOwningProperty();
         $owningClass = $relation->getOwningClass();
         $inverseProperty = $relation->getInverseProperty();
         $owningProperty = $relation->getOwningProperty();

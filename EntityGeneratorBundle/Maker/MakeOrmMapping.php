@@ -2,7 +2,13 @@
 
 namespace IvozDevTools\EntityGeneratorBundle\Maker;
 
+use Doctrine\DBAL\Types\Type;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\Manipulator\DumpXmlAttributes;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\Manipulator\GetFields;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedEntityRelation;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedPaths;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\RequestedProperty;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
@@ -17,12 +23,6 @@ use Symfony\Bundle\MakerBundle\Validator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Doctrine\DBAL\Types\Type;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedEntityRelation;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappedPaths;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingManipulator;
-use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\RequestedProperty;
-
 use Symfony\Component\Console\Question\Question;
 
 final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInterface
@@ -31,10 +31,11 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
     private $generator;
 
     public function __construct(
-        FileManager $fileManager,
-        DoctrineHelper $doctrineHelper,
+        FileManager      $fileManager,
+        DoctrineHelper   $doctrineHelper,
         MappingGenerator $mappingGenerator = null,
-    ) {
+    )
+    {
         $this->doctrineHelper = $doctrineHelper;
         // $projectDirectory is unused, argument kept for BC
 
@@ -86,9 +87,10 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
 
     public function generate(
         InputInterface $input,
-        ConsoleStyle $io,
-        Generator $generator
-    ): void {
+        ConsoleStyle   $io,
+        Generator      $generator
+    ): void
+    {
         $mappingName = $input->getArgument('mappingName');
         $entityName = $input->getArgument('name');
         $paths = $this->generator->getMappingsPath();
@@ -132,19 +134,26 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             ]);
         }
 
-        $this->updateMappedClass($io, $mappingName, $entityName, $mappedPaths);
+        $this->updateMappedClass(
+            $io,
+            $mappingName,
+            $entityName,
+            $mappedPaths
+        );
     }
-
-
 
     private function updateMappedClass(
         ConsoleStyle $io,
         string $mappingName,
         string $entityName,
         MappedPaths $paths
-    ): void {
-        $manipulator = $this->createMappedClassManipulator($paths, $mappingName);
-        $currentFields = $manipulator->getFields();
+    ): void
+    {
+        $fieldsManipulator = new GetFields(
+            $paths,
+            $this->generator
+        );
+        $currentFields = $fieldsManipulator->execute();
         $newFields = [];
         while (true) {
             $newField = $this->askForNextInput($io, $currentFields, $entityName);
@@ -153,9 +162,17 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
                 break;
             }
 
+            /** @var RequestedProperty[] $newFields */
             $newFields[] = $newField;
         }
-        $manipulator->dumpXmlAttributes($newFields);
+
+        $xmlManipulator = new DumpXmlAttributes(
+            generator: $this->generator,
+            paths: $paths,
+            mappingName: $mappingName
+        );
+
+        $xmlManipulator->execute($newFields);
     }
 
     public function configureDependencies(DependencyBuilder $dependencies, InputInterface $input = null)
@@ -168,12 +185,13 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
      */
     private function askForNextInput(
         ConsoleStyle $io,
-        array $fields,
-        string $entityName
-    ): ?RequestedProperty {
+        array        $fields,
+        string       $entityName
+    ): ?RequestedProperty
+    {
         $io->writeln('');
 
-        $question = new Question('Do you want to set a field or an index? [index, field] (or write "exit" to stop adding fields)', 'field');
+        $question = new Question('⚒️   Do you want to set a field or an index? [index, field] (or write "apply" to finish)', 'field');
         $type = $io->askQuestion($question);
 
         switch ($type) {
@@ -188,10 +206,15 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
                     $fields,
                     $entityName
                 );
-            case 'exit':
+            case 'apply':
                 return null;
             default:
-                throw new \InvalidArgumentException("Unknown argument type");
+                $io->error('Unknown input value');
+                return $this->askForNextInput(
+                    $io,
+                    $fields,
+                    $entityName
+                );
         }
     }
 
@@ -200,11 +223,14 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
      */
     private function askForNextIndex(
         ConsoleStyle $io,
-        array $fields
-    ): ?RequestedProperty {
+        array        $fields
+    ): ?RequestedProperty
+    {
         $io->writeln('');
 
         $questionText = 'Index name (press <return> to stop adding fields)';
+        /** @var RequestedProperty|null $data */
+        $data = null;
         $indexName = $io->ask($questionText, null, function ($name) use ($fields) {
             // allow it to be empty
             if (!$name) {
@@ -216,7 +242,9 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             }, $fields);
 
             if (in_array($name, $fieldNames)) {
-                throw new \InvalidArgumentException(sprintf('The "%s" property already exists.', $name));
+                $data = array_filter($fields, function ($field) use ($name) {
+                    return $field->getFieldName() === $name;
+                });
             }
 
             return Validator::validateDoctrineFieldName($name, $this->doctrineHelper->getRegistry());
@@ -226,9 +254,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             return null;
         }
 
-
         $data = new RequestedProperty($indexName, 'index');
-
         $columns = $io->ask('Columns referenced for unique constraints, it should be separated by a comma ","');
         $data->setUniqueConstraintColumns($columns);
 
@@ -240,12 +266,15 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
      */
     private function askForNextField(
         ConsoleStyle $io,
-        array $fields,
-        string $entityName
-    ): ?RequestedProperty {
+        array        $fields,
+        string       $entityName
+    ): ?RequestedProperty
+    {
         $io->writeln('');
-
         $questionText = 'Property name (press <return> to stop adding fields)';
+
+        /** @var RequestedProperty|null $data */
+        $data = null;
         $fieldName = $io->ask($questionText, null, function ($name) use ($fields) {
             // allow it to be empty
             if (!$name) {
@@ -257,7 +286,9 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             }, $fields);
 
             if (in_array($name, $fieldNames)) {
-                throw new \InvalidArgumentException(sprintf('The "%s" property already exists.', $name));
+                $data = array_filter($fields, function ($field) use ($name) {
+                    return $field->getFieldName() === $name;
+                });
             }
 
             return Validator::validateDoctrineFieldName($name, $this->doctrineHelper->getRegistry());
@@ -267,8 +298,6 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             return null;
         }
 
-
-        $type = null;
         $types = $this->getTypesMap();
 
         $allValidTypes = array_merge(
@@ -277,6 +306,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             ['relation']
         );
 
+        $type = null;
         while (null === $type) {
             $question = new Question('Field type (enter <comment>?</comment> to see all types)');
             $question->setAutocompleterValues($allValidTypes);
@@ -296,9 +326,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             }
         }
 
-        $data = new RequestedProperty($fieldName, $type);
-        $entityRelation = null;
-
+        $data = $data ?? new RequestedProperty($fieldName, $type);
         if ('relation' === $type || \in_array($type, MappedEntityRelation::getValidRelationTypes())) {
             $entityRelation = $this->askRelationDetails($io, $entityName, $type, $fieldName);
 
@@ -337,7 +365,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
                 $length = $io->ask('Field length', '255', [Validator::class, 'validateLength']);
                 $data->setLength($length);
 
-                $itHasComment = $io->confirm('Can this field be of type enum?', true);
+                $itHasComment = $io->confirm('Is this field be of type enum?', false);
 
                 if ($itHasComment) {
                     $comment = $io->ask('Set enum strings separated by "|" ');
@@ -422,10 +450,11 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
 
     private function askRelationDetails(
         ConsoleStyle $io,
-        string $entityName,
-        string $type,
-        string $newFieldName
-    ): MappedEntityRelation {
+        string       $entityName,
+        string       $type,
+        string       $newFieldName
+    ): MappedEntityRelation
+    {
 
         $targetEntityClass = null;
         while (null === $targetEntityClass) {
@@ -453,7 +482,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             $type = $this->askRelationType($io, $entityName, $targetEntityClass);
         }
 
-        $askFieldName = fn (string $targetClass, string $defaultValue) => $io->ask(
+        $askFieldName = fn(string $targetClass, string $defaultValue) => $io->ask(
             sprintf('New field name inside %s', Str::getShortClassName($targetClass)),
             $defaultValue,
             function ($name) use ($targetClass) {
@@ -469,7 +498,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             }
         );
 
-        $askIsNullable = static fn (string $propertyName, string $targetClass) => $io->confirm(
+        $askIsNullable = static fn(string $propertyName, string $targetClass) => $io->confirm(
             sprintf(
                 'Is the <comment>%s</comment>.<comment>%s</comment> property allowed to be null (nullable)?',
                 Str::getShortClassName($targetClass),
@@ -677,9 +706,9 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
             ],
             'relation' => [
                 'relation' => 'a ' . $wizard . ' will help you build the relation',
-                MappedEntityRelation::MANY_TO_ONE => [],
-                MappedEntityRelation::ONE_TO_MANY => [],
-                MappedEntityRelation::ONE_TO_ONE => [],
+//                MappedEntityRelation::MANY_TO_ONE => [],
+//                MappedEntityRelation::ONE_TO_MANY => [],
+//                MappedEntityRelation::ONE_TO_ONE => [],
             ],
             'constraint' => [
                 'unique_constraint' => [],
@@ -713,7 +742,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
                         implode(
                             ' or ',
                             array_map(
-                                static fn ($subType) => sprintf('<comment>%s</comment>', $subType),
+                                static fn($subType) => sprintf('<comment>%s</comment>', $subType),
                                 $subTypes
                             )
                         )
@@ -747,7 +776,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
 
         $io->writeln('<info>Other Types</info>');
         // empty the values
-        $allTypes = array_map(static fn () => [], $allTypes);
+        $allTypes = array_map(static fn() => [], $allTypes);
         $printSection($allTypes);
     }
 
@@ -756,18 +785,5 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
         $types = Type::getTypesMap();
 
         return $types;
-    }
-
-    private function createMappedClassManipulator(
-        MappedPaths $paths,
-        string $mappingName
-    ): MappingManipulator {
-        $manipulator = new MappingManipulator(
-            generator: $this->generator,
-            paths: $paths,
-            mappingName: $mappingName
-        );
-
-        return $manipulator;
     }
 }

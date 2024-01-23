@@ -4,3 +4,6 @@ parameters:
             - *.tpl.php
             - CommandlogBundle
             - MigrationsBundle
+    ignoreErrors:
+        - '#\(SimpleXMLElement\|null\) does not accept string#'
+        - '#SimpleXMLElement does not accept #'
