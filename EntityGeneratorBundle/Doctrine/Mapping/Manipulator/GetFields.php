@@ -42,7 +42,11 @@ class GetFields
             );
         }
 
-        foreach ($mappedSuperClass->{'unique-constraints'}->{'unique-constraint'} as $constraint) {
+        $uniqueConstraints = $mappedSuperClass
+            ->{'unique-constraints'}
+            ?->{'unique-constraint'};
+
+        foreach (($uniqueConstraints ?? []) as $constraint) {
             $currentFields[] = new RequestedProperty(
                 $constraint->attributes()['name'],
                 'unique_constraint'
