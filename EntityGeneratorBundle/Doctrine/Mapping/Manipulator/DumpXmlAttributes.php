@@ -15,13 +15,17 @@ use IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\Updater\UpdateRelations;
 
 class DumpXmlAttributes
 {
+    private $updateFields;
+    private $updateIndexes;
+    private $updateRelations;
+    private $constraintsGenerator;
+    private $relationsGenerator;
+    private $fieldsGenerator;
 
     public function __construct(
         private MappingGenerator $generator,
-        private MappedPaths      $paths,
-        private string           $mappingName
-    )
-    {
+        private MappedPaths      $paths
+    ) {
         $this->updateFields = new UpdateFields();
         $this->updateIndexes = new UpdateIndexes();
         $this->updateRelations = new UpdateRelations();
@@ -31,7 +35,7 @@ class DumpXmlAttributes
     }
 
     /**
-     * @param RequestedProperty[] $fields
+     * @param RequestedProperty[] $currentFields
      * @return void
      */
     public function execute(array $currentFields)

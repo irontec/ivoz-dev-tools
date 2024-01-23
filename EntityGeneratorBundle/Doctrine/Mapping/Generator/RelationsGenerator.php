@@ -12,7 +12,7 @@ class RelationsGenerator
     }
 
     /**
-     * ss@param RequestedProperty[] $data
+     * @param RequestedProperty[] $data
      */
     public function execute(\SimpleXMLElement $xml, array $data): \SimpleXMLElement
     {
@@ -128,42 +128,41 @@ class RelationsGenerator
     private function generateInversedRelation(
         MappedEntityRelation $relation,
         string               $fetch
-    )
-    {
-        $mappingPaths = $this->generator->getMappingsPath();
-        $owningProperty = $relation->getOwningProperty();
-        $owningClass = $relation->getOwningClass();
-        $inverseProperty = $relation->getInverseProperty();
-        $owningProperty = $relation->getOwningProperty();
-
-        $output = sprintf(
-            '%s/%s.%s.orm.xml',
-            $mappingPaths[$relation->getInversedProjectName()],
-            ucfirst($owningProperty),
-            ucfirst($owningProperty)
-        );
-
-        $xml = $this->generator
-            ->readXmlFile($output);
-        $aliasMappingPaths = $this->generator->getAliasMappingPaths();
-        $targetEntity = sprintf(
-            '%s\\%s\\%sInterface',
-            $aliasMappingPaths[$this->mappingName],
-            $owningClass,
-            $owningClass
-        );
-
-        $entity = $xml->{'entity'};
-        $oneToMany = $entity->addChild('one-to-many');
-        $oneToMany->addAttribute('field', $inverseProperty);
-        $oneToMany->addAttribute('target-entity', $targetEntity);
-        $oneToMany->addAttribute('mapped-by', $owningProperty);
-        $oneToMany->addAttribute('fetch', $fetch);
-
-        $this->generator->generateXml(
-            $xml,
-            $output
-        );
+    ) {
+        throw new \Exception("TODO");
+//        $mappingPaths = $this->generator->getMappingsPath();
+//        $owningClass = $relation->getOwningClass();
+//        $inverseProperty = $relation->getInverseProperty();
+//        $owningProperty = $relation->getOwningProperty();
+//
+//        $output = sprintf(
+//            '%s/%s.%s.orm.xml',
+//            $mappingPaths[$relation->getInversedProjectName()],
+//            ucfirst($owningProperty),
+//            ucfirst($owningProperty)
+//        );
+//
+//        $xml = $this->generator
+//            ->readXmlFile($output);
+//        $aliasMappingPaths = $this->generator->getAliasMappingPaths();
+//        $targetEntity = sprintf(
+//            '%s\\%s\\%sInterface',
+//            $aliasMappingPaths[$this->mappingName],
+//            $owningClass,
+//            $owningClass
+//        );
+//
+//        $entity = $xml->{'entity'};
+//        $oneToMany = $entity->addChild('one-to-many');
+//        $oneToMany->addAttribute('field', $inverseProperty);
+//        $oneToMany->addAttribute('target-entity', $targetEntity);
+//        $oneToMany->addAttribute('mapped-by', $owningProperty);
+//        $oneToMany->addAttribute('fetch', $fetch);
+//
+//        $this->generator->generateXml(
+//            $xml,
+//            $output
+//        );
     }
 
 }

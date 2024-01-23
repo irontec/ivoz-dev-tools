@@ -165,7 +165,6 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
         $xmlManipulator = new DumpXmlAttributes(
             generator: $this->generator,
             paths: $paths,
-            mappingName: $mappingName
         );
 
         $xmlManipulator->execute($newFields);
@@ -781,19 +780,5 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
         $types = Type::getTypesMap();
 
         return $types;
-    }
-
-    private function createMappedClassManipulator(
-        MappedPaths $paths,
-        string      $mappingName
-    ): MappingManipulator
-    {
-        $manipulator = new MappingManipulator(
-            generator: $this->generator,
-            paths: $paths,
-            mappingName: $mappingName
-        );
-
-        return $manipulator;
     }
 }

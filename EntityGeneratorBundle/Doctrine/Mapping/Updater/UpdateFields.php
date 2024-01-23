@@ -11,7 +11,7 @@ class UpdateFields
     }
 
     /**
-     * @param \SimpleXMLElement[] $element
+     * @param \SimpleXMLElement[] $elements
      * @return \SimpleXMLElement[]
      */
     public function execute(array $elements, RequestedProperty $field): array
