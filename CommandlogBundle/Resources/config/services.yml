@@ -9,6 +9,5 @@ services:
     tags: [{ name: 'console.command'}]
 
   ivoz.commandlog.show:
-    deprecated: "%service_id% is deprecated: use ivoz:commandlog:show instead"
     class: IvozDevTools\CommandlogBundle\Command\ShowCommand
-    tags: [{ name: 'console.command', command: 'provider:commandlog:show' }]
+    tags: [{ name: 'console.command', command: 'ivoz:commandlog:show' }]
