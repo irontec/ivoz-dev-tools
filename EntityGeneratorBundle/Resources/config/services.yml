@@ -32,14 +32,13 @@ services:
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [{ name: 'console.command' }]
 
-  provider.make.entities:
-    deprecated: "%service_id% is deprecated: use ivoz:make:entities instead"
+  ivoz.make.entities:
     class: IvozDevTools\EntityGeneratorBundle\Command\MakeEntitiesCommand
     arguments:
       $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeEntities'
       $fileManager: '@maker.file_manager'
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
-    tags: [{ name: 'console.command', command: 'provider:make:entities' }]
+    tags: [{ name: 'console.command', command: 'ivoz:make:entities' }]
 
   IvozDevTools\EntityGeneratorBundle\Maker\MakeInterfaces:
     arguments:
@@ -54,14 +53,13 @@ services:
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [{ name: 'console.command' }]
 
-  provider.make.interfaces:
-    deprecated: "%service_id% is deprecated: use ivoz:make:entities instead"
+  ivoz.make.interfaces:
     class: IvozDevTools\EntityGeneratorBundle\Command\MakeEntitiesCommand
     arguments:
       $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeInterfaces'
       $fileManager: '@maker.file_manager'
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
-    tags: [{ name: 'console.command', command: 'provider:make:entities' }]
+    tags: [{ name: 'console.command', command: 'ivoz:make:interfaces' }]
 
   IvozDevTools\EntityGeneratorBundle\Maker\MakeOrmMapping:
     arguments:
@@ -76,14 +74,13 @@ services:
       $mappingGenerator: '@IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator'
     tags: [ { name: 'console.command' } ]
 
-  provider.make.orm.entity:
-    deprecated: "%service_id% is deprecated: use ivoz:make:orm:mapping instead"
+  ivoz.make.orm.mapping:
     class: IvozDevTools\EntityGeneratorBundle\Command\MakeOrmMappingCommand
     arguments:
       $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeOrmMapping'
       $fileManager: '@maker.file_manager'
       $mappingGenerator: '@IvozDevTools\EntityGeneratorBundle\Doctrine\Mapping\MappingGenerator'
-    tags: [ { name: 'console.command', command: 'provider:make:orm:mapping' } ]
+    tags: [ { name: 'console.command', command: 'ivoz:make:orm:mapping' } ]
     
   #    REPOSITORY SERVICE
   IvozDevTools\EntityGeneratorBundle\Maker\MakeRepositories:
@@ -99,22 +96,20 @@ services:
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
     tags: [ { name: 'console.command' } ]
 
-  provider.make.repositories:
-    deprecated: "%service_id% is deprecated: use ivoz:make:repositories instead"
+  ivoz.make.repositories:
     class: IvozDevTools\EntityGeneratorBundle\Command\MakeRepositoriesCommand
     arguments:
       $maker: '@IvozDevTools\EntityGeneratorBundle\Maker\MakeRepositories'
       $fileManager: '@maker.file_manager'
       $generator: '@IvozDevTools\EntityGeneratorBundle\Generator'
-    tags: [ { name: 'console.command', command: 'provider:make:repositories' } ]
+    tags: [ { name: 'console.command', command: 'ivoz:make:repositories' } ]
 
   IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand:
     tags: [{ name: 'console.command' }]
 
-  provider.update.service_collections:
-    deprecated: "%service_id% is deprecated: use ivoz:update:service_collections instead"
+  ivoz.update.service_collections:
     class: IvozDevTools\EntityGeneratorBundle\Command\UpdateServiceCollectionsCommand
-    tags: [{ name: 'console.command', command: 'provider:update:service_collections'}]
+    tags: [{ name: 'console.command', command: 'ivoz:update:service_collections'}]
 
   IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata\ClassMetadataFactory: ~
 
