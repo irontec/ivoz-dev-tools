@@ -128,7 +128,7 @@ class ShowCommand extends Command
         $replacements = [
             ':entityId' => $id,
             ':entity' => $this->connection->quote($entity),
-            ':data' => '.*\,"arguments":\\[.*[\[,",\,]'. $id .'[\],",\,].*'
+            ':data' => '"arguments": *\\\\[.*[\\\\[," ]' . $id . '[\\\\]," ]'
         ];
 
         $query = str_replace(
