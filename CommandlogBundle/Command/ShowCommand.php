@@ -57,7 +57,14 @@ class ShowCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Show detailed command payload?'
-            );
+            )
+            ->addOption(
+                'deep',
+                'd',
+                InputOption::VALUE_NONE,
+                'Deep search including mass updates, deletes, etc.'
+            )
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -75,6 +82,7 @@ class ShowCommand extends Command
             $entity,
             $id,
             $output,
+            $input->getOption('deep'),
             $input->getOption('detailed')
         );
 
@@ -118,12 +126,17 @@ class ShowCommand extends Command
         throw new \Exception('Table does not exist or its not loggable');
     }
 
-    private function getEntityChangelog(string $entity, string $id, OutputInterface $output, bool $detailed)
+    private function getEntityChangelog(string $entity, string $id, OutputInterface $output, bool $deepSearch, bool $detailed)
     {
+        $deepSearchSql = $deepSearch
+            ? ' OR (entityId = 0 AND data REGEXP \':data\')'
+            : '';
+
         $queryStr =
             'select id, commandId, data, createdOn from Changelog where entity = :entity'
-            . ' and (entityId = \':entityId\' OR (entityId = 0 and data REGEXP \':data\'))'
-            . ' order by createdOn asc, microtime asc';
+            . ' and (entityId = \':entityId\''
+            . $deepSearchSql
+            . ') order by createdOn asc, microtime asc';
 
         $replacements = [
             ':entityId' => $id,
