@@ -3,6 +3,7 @@
 namespace IvozDevTools\EntityGeneratorBundle\Doctrine\EntityInterface;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Ivoz\Core\Domain\Model\SelfManagedInterface;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ManipulatorInterface;
 use IvozDevTools\EntityGeneratorBundle\Generator;
 use Symfony\Bundle\MakerBundle\FileManager;
@@ -71,6 +72,10 @@ final class InterfaceRegenerator
         $classMetadata->name = $fqdn;
         $classMetadata->rootEntityName = $fqdn;
         $interfaces = $this->getParentInterfaces($fqdn);
+
+        if (in_array(SelfManagedInterface::class, $interfaces)) {
+            return;
+        }
 
         [$classPath, $content] = $this->getClassTemplate(
             $classMetadata,
