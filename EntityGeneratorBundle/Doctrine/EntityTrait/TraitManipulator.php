@@ -248,11 +248,13 @@ final class TraitManipulator implements ManipulatorInterface
         array $columnOptions = [],
         string $visibility = 'protected'
     ) {
+        $getReturnHint = new GetReturnHint($this->useStatements);
         $this->methods[] = new Adder(
             $propertyName,
             $type,
             $isNullable,
             $classMetadata,
+            $getReturnHint,
             $commentLines,
             $columnOptions,
             $visibility
@@ -263,6 +265,7 @@ final class TraitManipulator implements ManipulatorInterface
             $type,
             $isNullable,
             $classMetadata,
+            $getReturnHint,
             $commentLines,
             $columnOptions,
             $visibility
@@ -273,6 +276,7 @@ final class TraitManipulator implements ManipulatorInterface
             $type,
             $isNullable,
             $classMetadata,
+            $getReturnHint,
             $commentLines,
             $columnOptions,
             $visibility

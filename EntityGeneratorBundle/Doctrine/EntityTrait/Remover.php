@@ -15,14 +15,19 @@ class Remover implements CodeGeneratorUnitInterface
     protected $classMetadata;
     protected $visibility;
 
+    protected $returnHintCallable;
+    protected GetReturnHint $getReturnHint;
+
     public function __construct(
         string $propertyName,
         string $type,
         bool $isNullable,
         $classMetadata,
+        GetReturnHint $getReturnHint,
         array $commentLines = [],
         array $columnOptions = [],
-        string $visibility = 'protected'
+        string $visibility = 'protected',
+        ?callable $returnHintCallable = null
     ) {
         $this->propertyName = $propertyName;
         $this->type = $type;
@@ -31,6 +36,8 @@ class Remover implements CodeGeneratorUnitInterface
         $this->columnOptions = $columnOptions;
         $this->classMetadata = $classMetadata;
         $this->visibility = $visibility;
+        $this->returnHintCallable = $returnHintCallable;
+        $this->getReturnHint = $getReturnHint;
     }
 
     public function toString(string $nlLeftPad = ''): string
@@ -40,7 +47,9 @@ class Remover implements CodeGeneratorUnitInterface
 
         $methodName = 'remove' . ucfirst($singularProperty);
         $fqdnSegments = explode('\\', $this->classMetadata->name);
-        $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
+        $returnHint = $this->getReturnHint->execute(
+            $fqdnSegments[count($fqdnSegments) -2] . 'Interface'
+        );
 
         $response = [];
         $response[] = sprintf(
