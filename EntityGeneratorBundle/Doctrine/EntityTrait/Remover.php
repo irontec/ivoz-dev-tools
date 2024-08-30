@@ -15,7 +15,6 @@ class Remover implements CodeGeneratorUnitInterface
     protected $classMetadata;
     protected $visibility;
 
-    protected $returnHintCallable;
     protected GetReturnHint $getReturnHint;
 
     public function __construct(
@@ -26,8 +25,7 @@ class Remover implements CodeGeneratorUnitInterface
         GetReturnHint $getReturnHint,
         array $commentLines = [],
         array $columnOptions = [],
-        string $visibility = 'protected',
-        ?callable $returnHintCallable = null
+        string $visibility = 'protected'
     ) {
         $this->propertyName = $propertyName;
         $this->type = $type;
@@ -36,7 +34,6 @@ class Remover implements CodeGeneratorUnitInterface
         $this->columnOptions = $columnOptions;
         $this->classMetadata = $classMetadata;
         $this->visibility = $visibility;
-        $this->returnHintCallable = $returnHintCallable;
         $this->getReturnHint = $getReturnHint;
     }
 
