@@ -15,11 +15,14 @@ class Replacer implements CodeGeneratorUnitInterface
     protected $classMetadata;
     protected $visibility;
 
+    protected GetReturnHint $getReturnHint;
+
     public function __construct(
         string $propertyName,
         string $type,
         bool $isNullable,
         $classMetadata,
+        GetReturnHint $getReturnHint,
         array $commentLines = [],
         array $columnOptions = [],
         string $visibility = 'protected'
@@ -31,6 +34,7 @@ class Replacer implements CodeGeneratorUnitInterface
         $this->columnOptions = $columnOptions;
         $this->classMetadata = $classMetadata;
         $this->visibility = $visibility;
+        $this->getReturnHint = $getReturnHint;
     }
 
     public function toString(string $nlLeftPad = ''): string
@@ -45,7 +49,9 @@ class Replacer implements CodeGeneratorUnitInterface
 
         $methodName = 'replace' . $camelCaseProperty;
         $fqdnSegments = explode('\\', $this->classMetadata->name);
-        $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
+        $returnHint = $this->getReturnHint->execute(
+            $fqdnSegments[count($fqdnSegments) -2] . 'Interface'
+        );
 
         $response = [];
         $response[] = '/**';

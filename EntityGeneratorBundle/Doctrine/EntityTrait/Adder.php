@@ -15,14 +15,17 @@ class Adder implements CodeGeneratorUnitInterface
     protected $classMetadata;
     protected $visibility;
 
+    protected GetReturnHint $getReturnHint;
+
     public function __construct(
         string $propertyName,
         string $type,
         bool $isNullable,
         $classMetadata,
+        GetReturnHint $getReturnHint,
         array $commentLines = [],
         array $columnOptions = [],
-        string $visibility = 'protected'
+        string $visibility = 'protected',
     ) {
         $this->propertyName = $propertyName;
         $this->type = $type;
@@ -31,6 +34,7 @@ class Adder implements CodeGeneratorUnitInterface
         $this->columnOptions = $columnOptions;
         $this->classMetadata = $classMetadata;
         $this->visibility = $visibility;
+        $this->getReturnHint = $getReturnHint;
     }
 
     public function toString(string $nlLeftPad = ''): string
@@ -41,7 +45,9 @@ class Adder implements CodeGeneratorUnitInterface
         $methodName = 'add' . ucfirst($singularProperty);
 
         $fqdnSegments = explode('\\', $this->classMetadata->name);
-        $returnHint = $fqdnSegments[count($fqdnSegments) -2] . 'Interface';
+        $returnHint = $this->getReturnHint->execute(
+            $fqdnSegments[count($fqdnSegments) -2] . 'Interface'
+        );
 
         $response = [];
         $response[] = sprintf(
