@@ -48,6 +48,14 @@ class Remover implements CodeGeneratorUnitInterface
             $fqdnSegments[count($fqdnSegments) -2] . 'Interface'
         );
 
+        $mapping = $this->classMetadata->getAssociationMapping($this->propertyName);
+        $onDeleteAction =
+            $this
+                ->classMetadata
+                ->getInversedRelationCascadeAction($this->propertyName);
+        $setterName = 'set' . ucfirst($mapping['mappedBy'] ?? '');
+        $setNull = $onDeleteAction == 'SET NULL';
+
         $response = [];
         $response[] = sprintf(
             '%s function %s(%s %s): %s',
@@ -59,7 +67,9 @@ class Remover implements CodeGeneratorUnitInterface
         );
 
         $response[] = '{';
-        $response[] = '    $this->' . $this->propertyName . '->removeElement($' . $singularProperty . ');';
+        $response[] = $setNull
+                ? '    $' . $singularProperty . '->' . $setterName . '(null);'
+                : '    $this->' . $this->propertyName . '->removeElement($' . $singularProperty . ');';
         $response[] = '';
         $response[] = '    return $this;';
         $response[] = '}';

@@ -136,7 +136,7 @@ class Replacer implements CodeGeneratorUnitInterface
             }
 
             if (!$match) {
-                $this->[PROPERTY_NAME]->remove($key);
+                [NO_MATCH_ACTION]
             }
         }
 
@@ -147,10 +147,23 @@ class Replacer implements CodeGeneratorUnitInterface
         return $this;
 TPL;
 
+        $cascadeAction = $this->getCascadeAction();
+        $notMatchAction = ($cascadeAction === 'SET NULL') ?
+            "\$this->${propertyName}[\$key]?->${mappedBy}(null);" :
+            "\$this->${propertyName}->remove(\$key);";
+
         return str_replace(
-            ['[MAPPED_BY]', '[PARAM_NAME]', '[PROPERTY_NAME]', '[ADDER]', '[HINT]'],
-            [$mappedBy, $paramName, $propertyName, $adder, $hint],
+            ['[MAPPED_BY]', '[PARAM_NAME]', '[PROPERTY_NAME]', '[ADDER]', '[HINT]', '[NO_MATCH_ACTION]'],
+            [$mappedBy, $paramName, $propertyName, $adder, $hint, $notMatchAction],
             $template
         );
+    }
+
+    private function getCascadeAction(): string {
+        return $this
+            ->classMetadata
+            ->getInversedRelationCascadeAction(
+                $this->propertyName,
+            );
     }
 }

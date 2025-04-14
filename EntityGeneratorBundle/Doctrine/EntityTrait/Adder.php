@@ -49,6 +49,14 @@ class Adder implements CodeGeneratorUnitInterface
             $fqdnSegments[count($fqdnSegments) -2] . 'Interface'
         );
 
+        $mapping = $this->classMetadata->getAssociationMapping($this->propertyName);
+        $onDeleteAction =
+            $this
+                ->classMetadata
+                ->getInversedRelationCascadeAction($this->propertyName);
+        $setterName = 'set' . ucfirst($mapping['mappedBy'] ?? '');
+        $setNull = $onDeleteAction == 'SET NULL';
+
         $response = [];
         $response[] = sprintf(
             '%s function %s(%s %s): %s',
@@ -60,6 +68,9 @@ class Adder implements CodeGeneratorUnitInterface
         );
 
         $response[] = '{';
+        if ($setNull) {
+            $response[] =  '    $' . $singularProperty . '->' . $setterName . '($this);';
+        }
         $response[] = '    $this->' . $this->propertyName . '->add($' . $singularProperty . ');';
         $response[] = '';
         $response[] = '    return $this;';
