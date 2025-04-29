@@ -102,4 +102,30 @@ class ClassMetadata extends DoctrineClassMetadata
     public function getInversedRelations(): array {
         return $this->inversedRelations;
     }
+
+    public function getInversedRelationCascadeAction(string $propertyName): string {
+        $association = $this->associationMappings[$propertyName] ?? null;
+        if (!$association) {
+            return '';
+        }
+
+        $mappedBy = $association['mappedBy'];
+
+        $inversedRelations = array_filter(
+            $this->inversedRelations,
+            fn($rel) => $rel['inversedBy'] === $propertyName && $rel['fieldName'] === $mappedBy,
+        );
+
+        if (empty($inversedRelations)) {
+            return '';
+        }
+
+        $inversedRelation = array_shift($inversedRelations);
+        $joinColumn = $inversedRelation['joinColumns'][0] ?? null;
+        if (is_null($joinColumn)) {
+            return '';
+        }
+
+        return $joinColumn['onDelete'] ?? '';
+    }
 }
