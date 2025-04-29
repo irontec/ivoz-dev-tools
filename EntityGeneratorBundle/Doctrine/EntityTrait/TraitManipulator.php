@@ -55,6 +55,8 @@ final class TraitManipulator implements ManipulatorInterface
     /** @var UseStatement[]  */
     private $useStatements = [];
 
+    private $classMetadata = null;
+
     public function __construct(string $sourceCode)
     {
         $this->lexer = new Lexer\Emulative([
@@ -117,6 +119,8 @@ final class TraitManipulator implements ManipulatorInterface
 
     public function addEntityField(string $propertyName, array $columnOptions, $classMetadata, array $comments = [])
     {
+        $this->classMetadata = $classMetadata;
+
         $columnName = $columnOptions['columnName'] ?? $propertyName;
         $typeHint = $this->getEntityTypeHint($columnOptions['type']);
 
@@ -218,7 +222,6 @@ final class TraitManipulator implements ManipulatorInterface
     public function addManyToManyRelation(RelationManyToMany $manyToMany, ClassMetadata $classMetadata)
     {
         throw new \Exception('@todo ManyToMany');
-//        $this->addCollectionRelation($manyToMany, $classMetadata);
     }
 
     public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
@@ -235,7 +238,8 @@ final class TraitManipulator implements ManipulatorInterface
             $propertyName,
             $returnType,
             $isReturnTypeNullable,
-            $commentLines
+            $this->classMetadata,
+            $commentLines,
         );
     }
 

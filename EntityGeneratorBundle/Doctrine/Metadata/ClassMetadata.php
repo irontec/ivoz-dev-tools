@@ -13,6 +13,9 @@ class ClassMetadata extends DoctrineClassMetadata
     /** @var InstantiatorInterface|null */
     private $instantiator;
 
+    /** @var array */
+    private $inversedRelations = [];
+
     public function __construct($entityName, ?NamingStrategy $namingStrategy = null)
     {
         $this->instantiator = new Instantiator();
@@ -82,5 +85,21 @@ class ClassMetadata extends DoctrineClassMetadata
                 ? $reflService->getAccessibleProperty($mapping['declared'], $field)
                 : $reflService->getAccessibleProperty($this->name, $field);
         }
+    }
+
+    /** @return array[] */
+    public function getOneToManyAssociationMappings(): array {
+        return array_filter(
+            $this->getAssociationMappings(),
+            fn(array $association) => $association['type'] === ClassMetadata::ONE_TO_MANY,
+        );
+    }
+
+    public function addToInversedRelations(array $mapping): void {
+        $this->inversedRelations[] = $mapping;
+    }
+
+    public function getInversedRelations(): array {
+        return $this->inversedRelations;
     }
 }

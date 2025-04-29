@@ -15,6 +15,7 @@ use IvozDevTools\EntityGeneratorBundle\Doctrine\Repository\RepositoryRegenerator
 use IvozDevTools\EntityGeneratorBundle\Doctrine\ValueObject\ValueObjectRegenerator;
 use IvozDevTools\EntityGeneratorBundle\Generator;
 use IvozDevTools\EntityGeneratorBundle\Doctrine\EntityTrait\TraitRegenerator;
+use IvozDevTools\EntityGeneratorBundle\Doctrine\Metadata\ClassMetadata as IvozClassMetadata;
 use Symfony\Bundle\MakerBundle\Doctrine\DoctrineHelper;
 use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
 use Symfony\Bundle\MakerBundle\FileManager;
@@ -75,10 +76,22 @@ final class Regenerator
 
     public function regenerateEntities(string $classOrNamespace)
     {
-        /** @var ClassMetadataInfo $classMetadata */
+        /** @var IvozClassMetadata $classMetadata */
         $classMetadata = $this->getMetadata($classOrNamespace);
         $isMappedSuperclass = $classMetadata->isMappedSuperclass;
         $isEmbeddedClass = $classMetadata->isEmbeddedClass;
+
+        $oneToManyAssociations = $classMetadata->getOneToManyAssociationMappings();
+        foreach($oneToManyAssociations as $association) {
+            $targetEntity = $association['targetEntity'];
+            $targetMetadata = $this->getMetadata($targetEntity);
+
+            $mapping = $targetMetadata->getAssociationMapping(
+                $association['mappedBy'],
+            );
+
+            $classMetadata->addToInversedRelations($mapping);
+        }
 
         if (class_exists($classOrNamespace)) {
             $implementedInterfaces = class_implements(
@@ -138,7 +151,6 @@ final class Regenerator
             $this->repositoryRegenerator->makeDoctrineRepository($classMetadata);
         }
     }
-
 
     private function getMetadata(string $classOrNamespace): ClassMetadata
     {
