@@ -77,7 +77,7 @@ class Getter implements CodeGeneratorUnitInterface
     {
         $template = <<<'TPL'
             /** @var ArrayCollection<int, [RETURN_TYPE]> $[PROPERTY_NAME] */
-            $[PROPERTY_NAME] = $this->[PROPERTY_NAME]->matching(
+                $[PROPERTY_NAME] = $this->[PROPERTY_NAME]->matching(
                     Criteria::create()
                         ->where(
                             Criteria::expr()
