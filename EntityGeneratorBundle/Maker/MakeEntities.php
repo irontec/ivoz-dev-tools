@@ -26,7 +26,7 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
     public function __construct(
         FileManager $fileManager,
         DoctrineHelper $doctrineHelper,
-        Generator $generator = null
+        ?Generator $generator = null
     ) {
         $this->fileManager = $fileManager;
         $this->doctrineHelper = $doctrineHelper;
@@ -107,7 +107,7 @@ final class MakeEntities extends AbstractMaker implements InputAwareMakerInterfa
         $this->writeSuccessMessage($io);
     }
 
-    public function configureDependencies(DependencyBuilder $dependencies, InputInterface $input = null)
+    public function configureDependencies(DependencyBuilder $dependencies, ?InputInterface $input = null)
     {
         ORMDependencyBuilder::buildDependencies($dependencies);
     }

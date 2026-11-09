@@ -202,7 +202,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
         );
     }
 
-    public function addEmbeddedEntity(string $propertyName, string $className, ClassMetadata $classMetadata = null)
+    public function addEmbeddedEntity(string $propertyName, string $className, ?ClassMetadata $classMetadata = null)
     {
     }
 
@@ -222,7 +222,7 @@ final class ValueObjectManipulator implements ManipulatorInterface
     {
     }
 
-    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
+    public function addInterface(string $interfaceName, ?ClassMetadata $classMetadata = null)
     {
     }
 

@@ -71,7 +71,7 @@ final class TraitManipulator implements ManipulatorInterface
         $this->ast = $this->parser->parse($sourceCode);
     }
 
-    public function updateSourceCode(ClassMetadata $classMetadata = null)
+    public function updateSourceCode(?ClassMetadata $classMetadata = null)
     {
         $leftPad = str_repeat(' ', 4);
 
@@ -224,7 +224,7 @@ final class TraitManipulator implements ManipulatorInterface
         throw new \Exception('@todo ManyToMany');
     }
 
-    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
+    public function addInterface(string $interfaceName, ?ClassMetadata $classMetadata = null)
     {
     }
 

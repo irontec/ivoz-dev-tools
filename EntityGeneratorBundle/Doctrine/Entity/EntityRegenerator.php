@@ -91,7 +91,7 @@ final class EntityRegenerator
     private function getClassTemplate(
         ClassMetadata $metadata,
         $templateName,
-        ClassMetadata $parentMetadata = null,
+        ?ClassMetadata $parentMetadata = null,
     ): array
     {
         [$path, $variables] = $this->generator->generateClassContentVariables(
