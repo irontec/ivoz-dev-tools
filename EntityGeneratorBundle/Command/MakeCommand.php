@@ -93,7 +93,7 @@ class MakeCommand extends Command
         return 0;
     }
 
-    public function setApplication(Application $application = null)
+    public function setApplication(?Application $application = null)
     {
         parent::setApplication($application);
 

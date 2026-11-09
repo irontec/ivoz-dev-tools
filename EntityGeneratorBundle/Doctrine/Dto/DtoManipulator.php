@@ -223,7 +223,7 @@ final class DtoManipulator implements ManipulatorInterface
         $this->addCollectionRelation($manyToMany, $classMetadata);
     }
 
-    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
+    public function addInterface(string $interfaceName, ?ClassMetadata $classMetadata = null)
     {
         $this->addUseStatementIfNecessary($interfaceName);
 
