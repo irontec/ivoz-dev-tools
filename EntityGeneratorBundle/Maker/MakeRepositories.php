@@ -127,7 +127,7 @@ final class MakeRepositories extends AbstractMaker implements InputAwareMakerInt
         return null;
     }
 
-    public function configureDependencies(DependencyBuilder $dependencies, InputInterface $input = null)
+    public function configureDependencies(DependencyBuilder $dependencies, ?InputInterface $input = null)
     {
         ORMDependencyBuilder::buildDependencies($dependencies);
     }

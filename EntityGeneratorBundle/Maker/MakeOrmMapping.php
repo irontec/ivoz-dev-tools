@@ -33,7 +33,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
     public function __construct(
         FileManager      $fileManager,
         DoctrineHelper   $doctrineHelper,
-        MappingGenerator $mappingGenerator = null,
+        ?MappingGenerator $mappingGenerator = null,
     )
     {
         $this->doctrineHelper = $doctrineHelper;
@@ -175,7 +175,7 @@ final class MakeOrmMapping extends AbstractMaker implements InputAwareMakerInter
         $xmlManipulator->execute($newFields);
     }
 
-    public function configureDependencies(DependencyBuilder $dependencies, InputInterface $input = null)
+    public function configureDependencies(DependencyBuilder $dependencies, ?InputInterface $input = null)
     {
         ORMDependencyBuilder::buildDependencies($dependencies);
     }

@@ -229,7 +229,7 @@ final class EntityManipulator implements ManipulatorInterface
         );
     }
 
-    public function addEmbeddedEntity(string $propertyName, string $className, ClassMetadata $classMetadata = null)
+    public function addEmbeddedEntity(string $propertyName, string $className, ?ClassMetadata $classMetadata = null)
     {
         $typeHint = $this->addUseStatementIfNecessary($className);
         $comments = ['@var ' . $typeHint];
@@ -256,7 +256,7 @@ final class EntityManipulator implements ManipulatorInterface
     {
     }
 
-    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
+    public function addInterface(string $interfaceName, ?ClassMetadata $classMetadata = null)
     {
     }
 
@@ -474,7 +474,7 @@ final class EntityManipulator implements ManipulatorInterface
     /**
      * @return string The alias to use when referencing this class
      */
-    public function addUseStatementIfNecessary(string $class, ClassMetadata $classMetadata = null): string
+    public function addUseStatementIfNecessary(string $class, ?ClassMetadata $classMetadata = null): string
     {
         $needle = [
             'Interface',

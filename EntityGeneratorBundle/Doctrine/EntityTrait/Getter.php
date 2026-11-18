@@ -44,7 +44,7 @@ class Getter implements CodeGeneratorUnitInterface
         }
         $response[] = ' */';
         $response[] = sprintf(
-            'public function %s(Criteria $criteria = null): array',
+            'public function %s(?Criteria $criteria = null): array',
             $methodName
         );
         $response[] = '{';

@@ -80,7 +80,7 @@ final class InterfaceManipulator implements ManipulatorInterface
                     }
                 }
             } elseif ($refType instanceof \ReflectionNamedType && $refType->getName() === 'array') {
-                $str = 'array ';
+                $str = $refType->allowsNull() ? '?array ' : 'array ';
             } elseif ($methodParameter->hasType()) {
                 $type = (string) $refType;
                 $typeArgs = explode('|', $type);
@@ -154,7 +154,7 @@ final class InterfaceManipulator implements ManipulatorInterface
         );
     }
 
-    public function addInterface(string $interface, ClassMetadata $classMetadata = null)
+    public function addInterface(string $interface, ?ClassMetadata $classMetadata = null)
     {
         $this->interfaces[] = $this->addUseStatementIfNecessary(
             $interface,
@@ -222,7 +222,7 @@ final class InterfaceManipulator implements ManipulatorInterface
     /**
      * @return string The alias to use when referencing this class
      */
-    public function addUseStatementIfNecessary(string $class, ClassMetadata $classMetadata = null): string
+    public function addUseStatementIfNecessary(string $class, ?ClassMetadata $classMetadata = null): string
     {
         $class = str_replace('?', '', $class);
 

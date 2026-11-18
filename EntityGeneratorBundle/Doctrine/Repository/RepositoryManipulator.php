@@ -24,7 +24,7 @@ class RepositoryManipulator implements ManipulatorInterface
         // TODO: Implement addMethod() method.
     }
 
-    public function addInterface(string $interfaceName, ClassMetadata $classMetadata = null)
+    public function addInterface(string $interfaceName, ?ClassMetadata $classMetadata = null)
     {
         // TODO: Implement addInterface() method.
     }
